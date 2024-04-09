@@ -43,18 +43,36 @@ public class Matcher {
                 newOrder.makeQuantityZero();
             }
         }
+        if (!newOrder.isMinExecQuantityConditionMet()){
+            rollbackTrades(newOrder, trades);
+            return MatchResult.minExecQuantityHaveNotMet();
+        }
         return MatchResult.executed(newOrder, trades);
     }
 
-    private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {
-        assert newOrder.getSide() == Side.BUY;
+    private void rollbackBuyOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
         newOrder.getBroker().increaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
         trades.forEach(trade -> trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
 
-        ListIterator<Trade> it = trades.listIterator(trades.size());
         while (it.hasPrevious()) {
-            newOrder.getSecurity().getOrderBook().restoreSellOrder(it.previous().getSell());
+            newOrder.getSecurity().getOrderBook().restoreOrder(it.previous().getSell());
         }
+    }
+
+    private void rollbackSellOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
+        newOrder.getBroker().decreaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
+
+        while (it.hasPrevious()) {
+            newOrder.getSecurity().getOrderBook().restoreOrder(it.previous().getBuy());
+        }
+
+    }
+    private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {
+        ListIterator<Trade> it = trades.listIterator(trades.size());
+        if (newOrder.getSide() == Side.BUY)
+            rollbackBuyOrder(newOrder, trades, it);
+        else
+            rollbackSellOrder(newOrder, trades, it);
     }
 
     public MatchResult execute(Order order) {

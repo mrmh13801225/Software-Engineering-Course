@@ -19,6 +19,12 @@ public final class MatchResult {
     public static MatchResult notEnoughPositions() {
         return new MatchResult(MatchingOutcome.NOT_ENOUGH_POSITIONS, null, new LinkedList<>());
     }
+    public static MatchResult invalidMinExecQuantity() {
+        return new MatchResult(MatchingOutcome.INVALID_MIN_EXEC_QUANTITY, null, new LinkedList<>());
+    }
+    public static MatchResult minExecQuantityHaveNotMet(){
+        return new MatchResult(MatchingOutcome.MIN_EXEC_QUANTITY_HAVE_NOT_MET, null, new LinkedList<>());
+    }
     private MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades) {
         this.outcome = outcome;
         this.remainder = remainder;

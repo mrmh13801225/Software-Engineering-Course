@@ -16,6 +16,7 @@ public class Order {
     protected long orderId;
     protected Security security;
     protected Side side;
+    protected final int initialQuantity;
     protected int quantity;
     protected int price;
     protected Broker broker;
@@ -31,6 +32,7 @@ public class Order {
         this.orderId = orderId;
         this.security = security;
         this.side = side;
+        this.initialQuantity = quantity;
         this.quantity = quantity;
         this.price = price;
         this.entryTime = entryTime;
@@ -45,6 +47,7 @@ public class Order {
         this.orderId = orderId;
         this.security = security;
         this.side = side;
+        this.initialQuantity = quantity;
         this.quantity = quantity;
         this.price = price;
         this.entryTime = entryTime;
@@ -115,4 +118,5 @@ public class Order {
     }
 
     public int getTotalQuantity() { return quantity; }
+    public boolean isMinExecQuantityConditionMet(){ return initialQuantity - quantity >= minimumExecutionQuantity; }
 }
