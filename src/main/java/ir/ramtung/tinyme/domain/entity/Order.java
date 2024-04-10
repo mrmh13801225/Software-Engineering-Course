@@ -146,4 +146,6 @@ public class Order {
     public boolean isMinExecQuantityConditionMet(){
         return isUpdated || (initialQuantity - quantity >= minimumExecutionQuantity);
     }
+
+    public boolean isYourMinExecQuantity(long reqMinExecQuantity){ return reqMinExecQuantity == minimumExecutionQuantity;}
 }

@@ -25,6 +25,10 @@ public final class MatchResult {
     public static MatchResult minExecQuantityHaveNotMet(){
         return new MatchResult(MatchingOutcome.MIN_EXEC_QUANTITY_HAVE_NOT_MET, null, new LinkedList<>());
     }
+    public static MatchResult chaningMinExecQuantityWhileUpdating(){
+        return new MatchResult(MatchingOutcome.CHANGING_MIN_EXEC_QUANTITY_IN_UPDATE_REQUEST, null,
+                new LinkedList<>());
+    }
     private MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades) {
         this.outcome = outcome;
         this.remainder = remainder;

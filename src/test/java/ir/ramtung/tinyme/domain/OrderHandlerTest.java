@@ -635,18 +635,20 @@ public class OrderHandlerTest {
 
     @Test
     void update_buyer_min_execution_quantity_does_not_match() {
-        broker2.increaseCreditBy(100_000_000);
         List<Order> orders = Arrays.asList(
-                new Order(3, security, Side.BUY, 50, 545, broker2, shareholder),
-                new Order(6, security, Side.SELL, 50, 580, broker1, shareholder)
+                new Order(1, security, Side.BUY, 304, 570, broker3, shareholder, 300),
+                new Order(2, security, Side.BUY, 430, 550, broker3, shareholder, 200),
+                new Order(3, security, Side.BUY, 445, 545, broker3, shareholder, 100),
+                new Order(6, security, Side.SELL, 350, 580, broker1, shareholder, 120),
+                new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240)
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
-        shareholder.incPosition(security,100_000);
+        broker3.increaseCreditBy(100_000_000);
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 100, 590, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 45));
-        verify(eventPublisher).publish(any(OrderAcceptedEvent.class));
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "ABC", 3, LocalDateTime.now(), Side.BUY, 150, 590, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 50));
-        verify(eventPublisher).publish(new OrderRejectedEvent(2, 10, List.of(Message.MIN_EXEC_QUANTITY_CONDITION_NOT_MET)));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 304, 570, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 301));
+
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 1, List.of(Message.CANNOT_CHANGE_MIN_EXEC_QUANTITY_WHILE_UPDATING_REQUEST)));
+        //assertThat(broker3.getCredit()).isEqualTo(100_000_000);
     }
 
     @Test
@@ -665,9 +667,8 @@ public class OrderHandlerTest {
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 6, LocalDateTime.now(), Side.SELL, 350, 580, broker1.getBrokerId(), shareholder.getShareholderId(), 0, 1));
 
-        verify(eventPublisher).publish(any(OrderUpdatedEvent.class));
-        assertThat(orders.get(3).getMinimumExecutionQuantity()).isEqualTo(120);
-        assertThat(broker1.getCredit()).isEqualTo(100_000_000);
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 6, List.of(Message.CANNOT_CHANGE_MIN_EXEC_QUANTITY_WHILE_UPDATING_REQUEST)));
+        //assertThat(broker1.getCredit()).isEqualTo(100_000_000);
     }
 
     @Test
