@@ -58,9 +58,9 @@ public class OrderHandler {
                         List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
                 return;
             }
-            if (matchResult.outcome() == MatchingOutcome.INVALID_MIN_EXEC_QUANTITY){ // ehtemalan hazfesh konam!
+            if (matchResult.outcome() == MatchingOutcome.MIN_EXEC_QUANTITY_HAVE_NOT_MET){
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
-                        List.of(Message.ORDER_MIN_EXEC_QUANTITY_NOT_POSITIVE)));
+                        List.of(Message.MIN_EXEC_QUANTITY_CONDITION_NOT_MET)));
                 return;
             }
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)

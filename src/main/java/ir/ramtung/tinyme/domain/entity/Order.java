@@ -26,6 +26,7 @@ public class Order {
     @Builder.Default
     protected OrderStatus status = OrderStatus.NEW;
     protected long minimumExecutionQuantity ;
+    protected boolean isUpdated;
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                  Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity) {
@@ -40,6 +41,13 @@ public class Order {
         this.shareholder = shareholder;
         this.status = status;
         this.minimumExecutionQuantity = minimumExecutionQuantity;
+        this.isUpdated = false;
+    }
+
+    public Order(long orderId, Security security, Side side, int initialQuantity, int quantity, int price, Broker broker,
+                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity,
+                 boolean isUpdated){
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, minimumExecutionQuantity);
     }
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
@@ -60,6 +68,7 @@ public class Order {
         this.shareholder = shareholder;
         this.status = OrderStatus.NEW;
         this.minimumExecutionQuantity = minimumExecutionQuantity;
+        this.isUpdated = false;
     }
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
@@ -118,6 +127,7 @@ public class Order {
 
     public void markAsNew(){
         status = OrderStatus.NEW;
+        this.isUpdated = true;
     }
     public boolean isQuantityIncreased(int newQuantity) {
         return newQuantity > quantity;
@@ -133,5 +143,7 @@ public class Order {
     }
 
     public int getTotalQuantity() { return quantity; }
-    public boolean isMinExecQuantityConditionMet(){ return initialQuantity - quantity >= minimumExecutionQuantity; }
+    public boolean isMinExecQuantityConditionMet(){
+        return isUpdated || (initialQuantity - quantity >= minimumExecutionQuantity);
+    }
 }
