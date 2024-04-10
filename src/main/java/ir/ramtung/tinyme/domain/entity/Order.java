@@ -138,6 +138,6 @@ public class Order {
 
     public int getTotalQuantity() { return quantity; }
     public boolean isMinExecQuantityConditionMet(){
-        return !isUpdated && (initialQuantity - quantity >= minimumExecutionQuantity);
+        return isUpdated || (initialQuantity - quantity >= minimumExecutionQuantity);
     }
 }
