@@ -49,11 +49,18 @@ public class OrderHandler {
                 matchResult = security.updateOrder(enterOrderRq, matcher);
 
             if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
-                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.BUYER_HAS_NOT_ENOUGH_CREDIT)));
                 return;
             }
             if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_POSITIONS) {
-                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.SELLER_HAS_NOT_ENOUGH_POSITIONS)));
+                return;
+            }
+            if (matchResult.outcome() == MatchingOutcome.INVALID_MIN_EXEC_QUANTITY){ // ehtemalan hazfesh konam!
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.ORDER_MIN_EXEC_QUANTITY_NOT_POSITIVE)));
                 return;
             }
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
@@ -81,6 +88,10 @@ public class OrderHandler {
 
     private void validateEnterOrderRq(EnterOrderRq enterOrderRq) throws InvalidRequestException {
         List<String> errors = new LinkedList<>();
+        if (enterOrderRq.getMinimumExecutionQuantity() < 0)
+            errors.add(Message.ORDER_MIN_EXEC_QUANTITY_NOT_POSITIVE);
+        if (enterOrderRq.getQuantity() < enterOrderRq.getMinimumExecutionQuantity())
+            errors.add(Message.SO_BIG_ORDER_MIN_EXEC_QUANTITY);
         if (enterOrderRq.getOrderId() <= 0)
             errors.add(Message.INVALID_ORDER_ID);
         if (enterOrderRq.getQuantity() <= 0)
