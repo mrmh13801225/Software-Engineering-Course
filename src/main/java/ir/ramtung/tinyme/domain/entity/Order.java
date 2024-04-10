@@ -43,6 +43,11 @@ public class Order {
     }
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
+                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, 0l);
+    }
+
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                  Shareholder shareholder, LocalDateTime entryTime, long minimumExecutionQuantity) {
         this.orderId = orderId;
         this.security = security;
@@ -58,8 +63,18 @@ public class Order {
     }
 
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
+                 Shareholder shareholder, LocalDateTime entryTime) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, 0l);
+    }
+
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                  Shareholder shareholder, long minimumExecutionQuantity) {
         this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), minimumExecutionQuantity);
+    }
+
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
+                 Shareholder shareholder) {
+        this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), 0l);
     }
 
     public Order snapshot() {

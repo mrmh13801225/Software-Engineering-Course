@@ -22,8 +22,6 @@ public class Security {
     private OrderBook orderBook = new OrderBook();
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (enterOrderRq.getMinimumExecutionQuantity() < 0)
-            return MatchResult.invalidMinExecQuantity();
         if (enterOrderRq.getSide() == Side.SELL &&
                 !shareholder.hasEnoughPositionsOn(this,
                 orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
