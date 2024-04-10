@@ -67,9 +67,8 @@ public class Order {
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, 0l);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity,
-                 int initialQuantity){
+    public Order(long orderId, Security security, Side side, int quantity, int price,int initialQuantity, Broker broker,
+                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity){
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, minimumExecutionQuantity);
     }
 
