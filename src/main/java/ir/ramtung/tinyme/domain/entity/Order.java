@@ -44,6 +44,12 @@ public class Order {
         this.isUpdated = false;
     }
 
+    public Order(long orderId, Security security, Side side, int initialQuantity, int quantity, int price, Broker broker,
+                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity,
+                 boolean isUpdated){
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, minimumExecutionQuantity);
+    }
+
     public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                  Shareholder shareholder, LocalDateTime entryTime, OrderStatus status) {
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, 0l);
