@@ -560,4 +560,41 @@ public class OrderHandlerTest {
         assertThat(shareholder.hasEnoughPositionsOn(security, 500)).isTrue();
     }
 
+    @Test
+    void does_not_match_because_not_satisfying_min_execution_and_rollback_on_buyer() {
+        List<Order> orders = Arrays.asList(
+                new Order(1, security, Side.BUY, 304, 550, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 200),
+                new Order(2, security, Side.BUY, 430, 500, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 400),
+                new Order(3, security, Side.SELL, 100, 520, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 200),
+                new Order(6, security, Side.SELL, 350, 560, broker1, shareholder, LocalDateTime.now(), OrderStatus.NEW, 300),
+                new Order(7, security, Side.SELL, 100, 590, broker2, shareholder, LocalDateTime.now(), OrderStatus.NEW,50)
+        );
+        orders.forEach(order -> security.getOrderBook().enqueue(order));
+        shareholder.decPosition(security, 99_500);
+        broker3.increaseCreditBy(100_000_000);
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 1, LocalDateTime.now(), Side.BUY, 304, 550, broker3.getBrokerId(), shareholder.getShareholderId(), 0));
+
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 1, List.of(Message.ORDER_MIN_EXEC_QUANTITY_NOT_POSITIVE)));
+        assertThat(broker3.getCredit()).isEqualTo(100_000_000);
+    }
+
+    @Test
+    void does_not_match_because_not_satisfying_min_execution_and_rollback_on_seller() {
+        List<Order> orders = Arrays.asList(
+                new Order(1, security, Side.BUY, 100, 550, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 200),
+                new Order(2, security, Side.BUY, 430, 500, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 400),
+                new Order(3, security, Side.SELL, 320, 520, broker3, shareholder, LocalDateTime.now(), OrderStatus.NEW, 200),
+                new Order(6, security, Side.SELL, 350, 560, broker1, shareholder, LocalDateTime.now(), OrderStatus.NEW, 300),
+                new Order(7, security, Side.SELL, 100, 590, broker2, shareholder, LocalDateTime.now(), OrderStatus.NEW,50)
+        );
+        orders.forEach(order -> security.getOrderBook().enqueue(order));
+        shareholder.decPosition(security, 99_500);
+        broker3.increaseCreditBy(100_000_000);
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.SELL, 320, 520, broker3.getBrokerId(), shareholder.getShareholderId(), 0));
+
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 3, List.of(Message.ORDER_MIN_EXEC_QUANTITY_NOT_POSITIVE)));
+        assertThat(broker3.getCredit()).isEqualTo(100_000_000);
+    }
 }
