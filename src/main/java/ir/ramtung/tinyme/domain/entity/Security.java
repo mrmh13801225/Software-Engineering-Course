@@ -26,16 +26,7 @@ public class Security {
                 !shareholder.hasEnoughPositionsOn(this,
                 orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
-        Order order;
-        if (enterOrderRq.getPeakSize() == 0)
-            order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder, enterOrderRq.getEntryTime(),
-                    enterOrderRq.getMinimumExecutionQuantity());
-        else
-            order = new IcebergOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
-                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getPeakSize(), enterOrderRq.getMinimumExecutionQuantity());
-
+        Order order = createNewOrder(enterOrderRq, broker, shareholder);
         return matcher.execute(order);
     }
 
@@ -91,5 +82,30 @@ public class Security {
             }
         }
         return matchResult;
+    }
+
+    private Order createNewOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder){
+        Order order;
+        if (isStopLimitOrder(enterOrderRq))
+            order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
+                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
+                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), enterOrderRq.getStopPrice());
+        else if (!isIceberg(enterOrderRq))
+            order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
+                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder, enterOrderRq.getEntryTime(),
+                    enterOrderRq.getMinimumExecutionQuantity());
+        else
+            order = new IcebergOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
+                    enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
+                    enterOrderRq.getEntryTime(), enterOrderRq.getPeakSize(), enterOrderRq.getMinimumExecutionQuantity());
+        return order;
+    }
+
+    private boolean isStopLimitOrder(EnterOrderRq enterOrderRq){
+        return enterOrderRq.getPeakSize() == 0  && enterOrderRq.getStopPrice() > 0;
+    }
+
+    private boolean isIceberg(EnterOrderRq enterOrderRq){
+        return enterOrderRq.getPeakSize() != 0;
     }
 }
