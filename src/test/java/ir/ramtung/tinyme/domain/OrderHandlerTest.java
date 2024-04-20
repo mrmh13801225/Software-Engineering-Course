@@ -714,4 +714,116 @@ public class OrderHandlerTest {
     }
 
 
+
+    ////test phase5
+    @Test
+    void create_new_seller_stop_limit_order_successfully() {
+
+        List<Order> orders = Arrays.asList(
+                new Order(1, security, Side.BUY, 304, 570, broker3, shareholder, 300),
+                new Order(2, security, Side.BUY, 430, 550, broker3, shareholder, 200),
+                new Order(3, security, Side.BUY, 445, 545, broker3, shareholder, 100),
+                new Order(6, security, Side.SELL, 350, 580, broker1, shareholder, 120),
+                new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240)
+        );
+
+        Order order1 = new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240, 400); //stoplimit
+
+    }
+
+
+    @Test
+    void create_new_buyer_stop_limit_order_successfully() {
+
+    }
+
+    @Test
+    void update_buyer_stop_limit() {
+
+    }
+
+    @Test
+    void update_seller_stop_limit() {
+
+    }
+
+    @Test
+    void update_seller_stop_limit_order_when_stop_price_is_active() {
+
+    }
+
+    @Test
+    void update_buyer_stop_limit_order_when_stop_price_is_active() {
+
+    }
+
+    @Test
+    void update_min_quantity_of_stop_limit_order() {        /////Separate seller and buyer?
+
+    }
+
+    @Test
+    void create_new_iceberg_seller_order_with_stop_limit_order() {
+
+    }
+
+    @Test
+    void create_new_iceberg_buyer_order_with_stop_limit_order() {
+
+    }
+
+    @Test
+    void when_stop_price_is_active_it_will_activate_all_stop_limit_orders_with_the_same_stop_price() {     ///should I separate buyer and seller?
+
+    }
+
+
+    @Test
+    void delete_stop_limit_order_when_stop_price_is_passive() {     ///should I separate buyer and seller?
+
+    }
+
+    @Test
+    void delete_stop_limit_order_when_stop_price_is_active() {
+        //rollback check
+    }
+
+    @Test
+    void new_order_will_activate_new_stop_limit_order_which_will_activate_another_stop_limit_order() {
+
+    }
+
+    @Test
+    void new_order_will_not_activate_the_stop_limit_order() {
+
+    }
+
+    @Test
+    void stop_limit_order_will_act_like_normal_order_when_stop_price_is_active() {
+
+    }
+
+    @Test
+    void new_order_activates_number_of_stop_limit_order() {
+
+    }
+
+    @Test
+    void update_stop_limit_order_and_stop_price_is_passive() {
+
+    }
+
+    @Test
+    void new_stop_limit_order_with_min_quantity() {
+
+    }
+
 }
+
+
+
+
+
+
+
+
