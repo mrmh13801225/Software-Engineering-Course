@@ -724,11 +724,15 @@ public class OrderHandlerTest {
                 new Order(2, security, Side.BUY, 430, 550, broker3, shareholder, 200),
                 new Order(3, security, Side.BUY, 445, 545, broker3, shareholder, 100),
                 new Order(6, security, Side.SELL, 350, 580, broker1, shareholder, 120),
-                new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240)
+                new Order(7, security, Side.SELL, 100, 581, broker1, shareholder, 240)
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
-
-        Order order1 = new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240, 400); //stoplimit
+        broker2.increaseCreditBy(1000_000);
+        StopLimitOrder order1 = new StopLimitOrder(8, security, Side.SELL, 230, 500, broker2, shareholder, 0, 570); //stoplimit
+        // public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity, long stopPrice)
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 2, LocalDateTime.now(), Side.SELL, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 570));
+        verify(eventPublisher).publish(any(OrderAcceptedEvent.class));
+        ///assertThat(broker2.getCredit()).isEqualTo(1000_000 - 131_100);
 
     }
 
