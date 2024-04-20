@@ -102,6 +102,21 @@ public class EnterOrderRq {
                 quantity, price, brokerId, shareholderId, peakSize, 0l);
     }
 
+    public static EnterOrderRq createUpdateStopLimitOrderRq(long requestId, String securityIsin, long orderId,
+                                                            LocalDateTime entryTime, Side side, int quantity, int price,
+                                                            long brokerId, long shareholderId, int peakSize,
+                                                            long minimumExecutionQuantity, long stopPrice){
+        return new EnterOrderRq(OrderEntryType.UPDATE_ORDER, requestId, securityIsin, orderId, entryTime, side,
+                quantity, price, brokerId, shareholderId, peakSize, minimumExecutionQuantity, stopPrice);
+    }
+
+    public static EnterOrderRq createUpdateStopLimitOrderRq(long requestId, String securityIsin, long orderId,
+                                                            LocalDateTime entryTime, Side side, int quantity, int price,
+                                                            long brokerId, long shareholderId, int peakSize,
+                                                            long stopPrice){
+        return new EnterOrderRq(OrderEntryType.UPDATE_ORDER, requestId, securityIsin, orderId, entryTime, side,
+                quantity, price, brokerId, shareholderId, peakSize, 0l, stopPrice);
+    }
 
 
 }
