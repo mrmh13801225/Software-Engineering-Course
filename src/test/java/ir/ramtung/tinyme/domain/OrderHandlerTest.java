@@ -726,6 +726,7 @@ public class OrderHandlerTest {
                 new Order(6, security, Side.SELL, 350, 580, broker1, shareholder, 120),
                 new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240)
         );
+        orders.forEach(order -> security.getOrderBook().enqueue(order));
 
         Order order1 = new Order(7, security, Side.SELL, 100, 581, broker2, shareholder, 240, 400); //stoplimit
 
