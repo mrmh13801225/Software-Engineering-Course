@@ -41,12 +41,25 @@ public class OrderHandler {
             Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
             Broker broker = brokerRepository.findBrokerById(enterOrderRq.getBrokerId());
             Shareholder shareholder = shareholderRepository.findShareholderById(enterOrderRq.getShareholderId());
-
+            // check for orders to be new order(stop price conditions)
             MatchResult matchResult;
             if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
                 matchResult = security.newOrder(enterOrderRq, broker, shareholder, matcher);
             else
                 matchResult = security.updateOrder(enterOrderRq, matcher);
+
+            if ((enterOrderRq.getPeakSize() > 0) && (enterOrderRq.getStopPrice() > 0))
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.STOP_LIMIT_ORDER_CANNOT_BE_ICEBERG)));
+
+            if ((enterOrderRq.getStopPrice() < 0))
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.INVALID_STOP_PRICE)));
+
+            if ((enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER) && (enterOrderRq.getMinimumExecutionQuantity() > 0) &&
+                    (enterOrderRq.getStopPrice() > 0))
+                eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                        List.of(Message.STOP_LIMIT_ORDER_CANNOT_HAVE_MIN_EXEC)));
 
             if (matchResult.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT) {
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
