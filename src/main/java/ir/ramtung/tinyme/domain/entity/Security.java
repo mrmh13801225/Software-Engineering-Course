@@ -172,4 +172,8 @@ public class Security {
         return executedResults;
     }
 
+    public void updatePrice(long price){
+        this.price = price;
+    }
+
 }
