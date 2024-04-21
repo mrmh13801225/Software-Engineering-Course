@@ -179,12 +179,13 @@ public class Security {
         return true;
     }
 
-    private MatchResult handleStopLimitOrder(StopLimitOrder order){
-        if(canGetEnqueued(order)){
+    private MatchResult handleStopLimitOrder(StopLimitOrder order) {
+        if (canGetEnqueued(order)) {
             stopLimitOrderBook.enqueue(order);
             return MatchResult.stopLimitOrderQueued();
         }
         return MatchResult.notEnoughCredit();
+    }
 
 
     public ArrayList<MatchResult> handleActivation(){
