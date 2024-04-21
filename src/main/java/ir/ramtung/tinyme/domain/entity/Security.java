@@ -8,6 +8,10 @@ import ir.ramtung.tinyme.messaging.Message;
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.swing.text.html.HTMLDocument;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 @Getter
@@ -20,6 +24,13 @@ public class Security {
     private int lotSize = 1;
     @Builder.Default
     private OrderBook orderBook = new OrderBook();
+    @Builder.Default
+    private long price = 0;
+    @Builder.Default
+    private StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
+    @Builder.Default
+    private LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
+
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
         if (enterOrderRq.getSide() == Side.SELL &&
@@ -27,7 +38,10 @@ public class Security {
                 orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
-        return matcher.execute(order);
+        if(order instanceof StopLimitOrder)
+            return handleStopLimitOrder((StopLimitOrder) order);
+        else
+            return matcher.execute(order);
     }
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
@@ -49,7 +63,7 @@ public class Security {
             throw new InvalidRequestException(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER);
 
         if (!order.isYourMinExecQuantity(updateOrderRq.getMinimumExecutionQuantity()))
-            return MatchResult.chaningMinExecQuantityWhileUpdating();
+            return MatchResult.changingMinExecQuantityWhileUpdating();
         if (updateOrderRq.getSide() == Side.SELL &&
                 !order.getShareholder().hasEnoughPositionsOn(this,
                 orderBook.totalSellQuantityByShareholder(order.getShareholder()) - order.getQuantity() + updateOrderRq.getQuantity()))
@@ -89,7 +103,8 @@ public class Security {
         if (isStopLimitOrder(enterOrderRq))
             order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), enterOrderRq.getStopPrice());
+                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(),
+                    enterOrderRq.getStopPrice(), enterOrderRq.getRequestId());
         else if (!isIceberg(enterOrderRq))
             order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder, enterOrderRq.getEntryTime(),
@@ -108,4 +123,53 @@ public class Security {
     private boolean isIceberg(EnterOrderRq enterOrderRq){
         return enterOrderRq.getPeakSize() != 0;
     }
+
+    private boolean isActive(Order order){
+        if(!(order instanceof StopLimitOrder))
+            return true;
+        else if(((StopLimitOrder) order).isActivated(price))
+            return true;
+        else
+            return false;
+    }
+
+    private MatchResult handleStopLimitOrder(StopLimitOrder order){
+        if(order.getBroker().reserveCredit(order.getPrice() * order.getQuantity())){
+            stopLimitOrderBook.enqueue(order);
+            return MatchResult.stopLimitOrderQueued();
+        }
+        return MatchResult.notEnoughCredit();
+    }
+
+
+    public ArrayList<MatchResult> handleActivation(){
+        LinkedList<StopLimitOrder> newActivatedOrders = stopLimitOrderBook.popActivatedOrders(price);
+        ArrayList<MatchResult> activationResults = new ArrayList<>();
+        activatedStopOrder.addAll(newActivatedOrders);
+        Iterator<StopLimitOrder> iterator = newActivatedOrders.iterator();
+        while (iterator.hasNext()){
+            activationResults.add(MatchResult.stopLimitOrderActivated(iterator.next()));
+        }
+        return activationResults;
+    }
+
+    public MatchResult executeFirstActivatedOrder(Matcher matcher){
+        if(!activatedStopOrder.isEmpty()){
+            StopLimitOrder order = activatedStopOrder.pop();
+            order.getBroker().releaseReservedCredit(order.getQuantity() * order.getPrice());
+            return matcher.execute(order);
+        }
+        return null;
+    }
+
+    public ArrayList<MatchResult> executeActivatedStopOrders(Matcher matcher){
+        ArrayList<MatchResult> executedResults = new ArrayList<>();
+        MatchResult temp = executeFirstActivatedOrder(matcher);
+        while (temp != null){
+            executedResults.add(temp);
+            temp = executeFirstActivatedOrder(matcher);
+        }
+        return executedResults;
+    }
+
 }
