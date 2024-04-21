@@ -20,6 +20,11 @@ public class Security {
     private int lotSize = 1;
     @Builder.Default
     private OrderBook orderBook = new OrderBook();
+    @Builder.Default
+    private long price = 0;
+    @Builder.Default
+    private StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
+
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
         if (enterOrderRq.getSide() == Side.SELL &&
@@ -27,6 +32,8 @@ public class Security {
                 orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
+        if(!isActive(order))
+
         return matcher.execute(order);
     }
 
@@ -109,5 +116,17 @@ public class Security {
         return enterOrderRq.getPeakSize() != 0;
     }
 
+    private boolean isActive(Order order){
+        if(!(order instanceof StopLimitOrder))
+            return true;
+        else if(((StopLimitOrder) order).isActivated(price))
+            return true;
+        else
+            return false;
+    }
 
+    private void handleInacvtiveOrder(StopLimitOrder order){
+        order.getBroker().reserveCredit(order.getPrice() * order.getQuantity());
+        stopLimitOrderBook.enqueue(order);
+    }
 }
