@@ -88,4 +88,8 @@ public class StopLimitOrder extends Order{
             return price < this.stopPrice;
         }
     }
+
+    public Order toOrder(){
+        return super.snapshot();
+    }
 }
