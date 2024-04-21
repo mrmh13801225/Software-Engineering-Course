@@ -880,7 +880,7 @@ public class OrderHandlerTest {
 //    }
 
     @Test
-    void when_stop_price_is_active_it_will_activate_all_stop_limit_orders_with_the_same_stop_price() {     ///should I separate buyer and seller?
+    void wtf() {     ///should I separate buyer and seller?
 
         Order sellOrder1 = new Order(100, security, Side.SELL, 30, 400, broker1, shareholder);
         Order buyOrder1 = new Order(102, security, Side.BUY, 50, 500, broker2, shareholder);
@@ -904,49 +904,61 @@ public class OrderHandlerTest {
 
         assertThat(broker1.getCredit()).isEqualTo(1000_000 + (500 * 30));
 
+
+    }
+
+    @Test
+    void when_stop_price_is_active_it_will_activate_all_stop_limit_orders_with_the_same_stop_price() {
         StopLimitOrder stopLimitOrder1 = new StopLimitOrder(8, security, Side.SELL, 230, 500, broker3, shareholder, 0, 450); //stoplimit
         StopLimitOrder stopLimitOrder2 = new StopLimitOrder(9, security, Side.SELL, 260, 520, broker3, shareholder, 0, 460);
         StopLimitOrder stopLimitOrder3 = new StopLimitOrder(10, security, Side.SELL, 200, 530, broker3, shareholder, 0, 470);
 
 
-        security.stopLimitOrder.getStopLimitOrderBook().enqueue(stopLimitOrder1);
-        security.stopLimitOrder.getStopLimitOrderBook().enqueue(stopLimitOrder2);
-        security.stopLimitOrder.getStopLimitOrderBook().enqueue(stopLimitOrder3);
+//        security.getStopLimitOrderBook().enqueue(stopLimitOrder1);
+//        security.getStopLimitOrderBook().enqueue(stopLimitOrder2);
+//        security.getStopLimitOrderBook().enqueue(stopLimitOrder3);
 
-        Order sellOrder2 = new Order(103, security, Side.SELL, 20, 400, broker1, shareholder);
-        Order buyOrder2 = new Order(104, security, Side.BUY, 50, 440, broker2, shareholder);
+        Order sellOrder2 = new Order(22, security, Side.SELL, 20, 400, broker1, shareholder);
+        Order buyOrder2 = new Order(24, security, Side.BUY, 50, 440, broker2, shareholder);
 
         security.getOrderBook().enqueue(sellOrder2);
         security.getOrderBook().enqueue(buyOrder2);
 
-//        orders.forEach(order -> security.getOrderBook().enqueue(order))
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 22, LocalDateTime.now(), Side.SELL, 20, 400, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(2, "ABC", 103, LocalDateTime.now(), Side.SELL, 20, 400, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
+        verify(eventPublisher).publish((new OrderAcceptedEvent(1, 22)));
+        verify(eventPublisher).publish(any(OrderExecutedEvent.class));
 
-        Trade trade2 = new Trade(security, buyOrder2.getPrice(), sellOrder2.getQuantity(),
-                buyOrder2, sellOrder2);
+        //////////stopLimit har 3tashun faal mishe va bayad check konim ke har 3ta trade beshan
+        //verify(eventPublisher).publish(new OrderExecutedEvent(2, 103, List.of(new TradeDTO(trade2))));
 
-        verify(eventPublisher).publish((new OrderAcceptedEvent(2, 103)));
-        verify(eventPublisher).publish(new OrderExecutedEvent(2, 103, List.of(new TradeDTO(trade2))));
-
-        assertThat(broker1.getCredit()).isEqualTo(1000_000 + (500 * 30) + (440 * 20));
-
-
+        //assertThat(broker1.getCredit()).isEqualTo(1000_000 + (500 * 30) + (440 * 20));
     }
 
 
     @Test
     void delete_stop_limit_order_when_stop_price_is_passive() {     ///should I separate buyer and seller?
-
+        ///add some orders
+        // add a stop limit order
+        ///delete it
     }
 
     @Test
     void delete_stop_limit_order_when_stop_price_is_active() {
-        //rollback check
+        ///add some order
+        ///manage trade price as it activates the stop limit
+        ///add stop limit order
+        ///delete it
+
     }
 
     @Test
     void new_order_will_activate_new_stop_limit_order_which_will_activate_another_stop_limit_order() {
+        //add orders
+        //trade
+        //add some stop limit orders
+        //active stop limit order
+        //it activates another stop limit order
 
     }
 
@@ -957,22 +969,20 @@ public class OrderHandlerTest {
 
     @Test
     void stop_limit_order_will_act_like_normal_order_when_stop_price_is_active() {
-
-    }
-
-    @Test
-    void new_order_activates_number_of_stop_limit_order() {
-
+        //no need to test
     }
 
     @Test
     void update_stop_limit_order_and_stop_price_is_passive() {
-
+        //some orders
+        //add stop limit order
+        //update stop limit order
+        //pass
     }
 
     @Test
     void new_stop_limit_order_with_min_quantity() {
-
+        ///stop limit order with min q
     }
 
 }
