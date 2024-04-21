@@ -918,10 +918,16 @@ public class OrderHandlerTest {
 
     @Test
     void delete_stop_limit_order_when_stop_price_is_active() {
-        ///add some order
-        ///manage trade price as it activates the stop limit
-        ///add stop limit order
-        ///delete it
+        Order buyOrder1 = new Order(102, security, Side.BUY, 50, 500, broker2, shareholder);
+        broker2.increaseCreditBy(1000_000);
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 100, LocalDateTime.now(), Side.SELL, 30, 400, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 100));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(8, "ABC", 9, LocalDateTime.now(), Side.SELL, 230, 500, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 450));
+
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(2, "ABC", Side.SELL, 8));
+
+        verify(eventPublisher).publish(new OrderDeletedEvent(2, 8));
 
     }
 
