@@ -40,4 +40,8 @@ public class Broker {
         }
         return false;
     }
+
+    public void releaseReservedCredit (long amount){
+        reservedCredit -= amount;
+    }
 }
