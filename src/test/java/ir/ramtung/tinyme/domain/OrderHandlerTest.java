@@ -908,9 +908,12 @@ public class OrderHandlerTest {
 
     @Test
     void delete_stop_limit_order_when_stop_price_is_passive() {     ///should I separate buyer and seller?
-        ///add some orders
-        // add a stop limit order
-        ///delete it
+        StopLimitOrder stopLimitOrder1 = new StopLimitOrder(8, security, Side.SELL, 230, 500, broker3, shareholder, 0, 450); //stoplimit
+
+        security.getStopLimitOrderBook().enqueue(stopLimitOrder1);
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(2, "ABC", Side.SELL, 8));
+
+        verify(eventPublisher).publish(new OrderDeletedEvent(2, 8));
     }
 
     @Test
@@ -955,6 +958,26 @@ public class OrderHandlerTest {
         StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 30, 450));
         verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+    }
+
+    @Test
+    void hashemTest(){
+        broker1.increaseCreditBy(1000_000);
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 1, LocalDateTime.now(),
+                Side.BUY, 10, 100, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(2, "ABC", 2, LocalDateTime.now(),
+                Side.BUY, 10, 110, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(4, "ABC", 4, LocalDateTime.now(),
+                Side.SELL, 5, 100, broker2.getBrokerId(), shareholder.getShareholderId(), 0));
+
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(3 , "ABC", 3,
+                LocalDateTime.now(), Side.SELL, 15, 100, broker2.getBrokerId() ,shareholder.getShareholderId(),
+                0, 120));
+
+        assertThat(broker1.getCredit()).isEqualTo(1000_000 - 2100);
     }
 
 }
