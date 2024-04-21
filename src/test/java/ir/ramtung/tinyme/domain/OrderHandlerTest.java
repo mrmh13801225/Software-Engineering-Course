@@ -816,10 +816,11 @@ public class OrderHandlerTest {
     @Test
     void create_new_iceberg_seller_order_with_stop_limit_order() {
         StopLimitOrder order1 = new StopLimitOrder(8, security, Side.SELL, 230, 500, broker3, shareholder, 0, 450); //stoplimit
+        security.getStopLimitOrderBook().enqueue(order1);
         // public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity, long stopPrice)
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 90, 490));
         verify(eventPublisher).publish(any(OrderRejectedEvent.class));
-        verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_BE_ICEBERG)));   ///chderaaaa publish nemikoni
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER)));   ///chderaaaa publish nemikoni
         ///publish ham mikone????
 
     }
@@ -830,7 +831,7 @@ public class OrderHandlerTest {
         // public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity, long stopPrice)
         security.getStopLimitOrderBook().enqueue(order1);
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 90, 490));
-//        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
         //verify(eventPublisher).publish(new OrderExecutedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_BE_ICEBERG)));
         verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER)));
     }
