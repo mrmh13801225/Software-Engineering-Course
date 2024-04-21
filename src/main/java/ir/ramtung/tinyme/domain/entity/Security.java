@@ -169,13 +169,22 @@ public class Security {
             return false;
     }
 
+    private boolean canGetEnqueued(StopLimitOrder order){
+        if (order.getSide() == Side.BUY){
+            if (order.getBroker().reserveCredit(order.getPrice() * order.getQuantity()))
+                return true;
+            else
+                return false;
+        }
+        return true;
+    }
+
     private MatchResult handleStopLimitOrder(StopLimitOrder order){
-        if(order.getBroker().reserveCredit(order.getPrice() * order.getQuantity())){
+        if(canGetEnqueued(order)){
             stopLimitOrderBook.enqueue(order);
             return MatchResult.stopLimitOrderQueued();
         }
         return MatchResult.notEnoughCredit();
-    }
 
 
     public ArrayList<MatchResult> handleActivation(){
