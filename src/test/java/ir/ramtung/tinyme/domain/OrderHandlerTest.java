@@ -952,7 +952,9 @@ public class OrderHandlerTest {
 
     @Test
     void new_stop_limit_order_with_min_quantity() {
-        ///stop limit order with min q
+        StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 30, 450));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
     }
 
 }
