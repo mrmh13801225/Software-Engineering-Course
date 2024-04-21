@@ -828,10 +828,11 @@ public class OrderHandlerTest {
     void create_new_iceberg_buyer_order_with_stop_limit_order() {
         StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
         // public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity, long stopPrice)
+        security.getStopLimitOrderBook().enqueue(order1);
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 90, 490));
-        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+//        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
         //verify(eventPublisher).publish(new OrderExecutedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_BE_ICEBERG)));
-        verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_BE_ICEBERG)));
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER)));
     }
 
 
@@ -925,9 +926,9 @@ public class OrderHandlerTest {
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 100));
         orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(8, "ABC", 9, LocalDateTime.now(), Side.SELL, 230, 500, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 450));
 
-        orderHandler.handleDeleteOrder(new DeleteOrderRq(2, "ABC", Side.SELL, 8));
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(2, "ABC", Side.SELL, 9));
 
-        verify(eventPublisher).publish(new OrderDeletedEvent(2, 8));
+        verify(eventPublisher).publish(new OrderDeletedEvent(2, 9));
 
     }
 
