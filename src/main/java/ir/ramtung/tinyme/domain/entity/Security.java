@@ -50,9 +50,9 @@ public class Security {
                 deleteOrderRq.getOrderId());
         if (order == null && inactiveOrder == null)
             throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
-        if (order.getSide() == Side.BUY)
+        if (order != null && order.getSide() == Side.BUY)
             order.getBroker().increaseCreditBy(order.getValue());
-        if (inactiveOrder.getSide() == Side.BUY)
+        if (inactiveOrder != null && inactiveOrder.getSide() == Side.BUY)
             inactiveOrder.getBroker().releaseReservedCredit(
                     inactiveOrder.getQuantity() * inactiveOrder.getPrice());
         if (inactiveOrder == null)
