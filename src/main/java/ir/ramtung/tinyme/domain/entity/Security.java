@@ -202,7 +202,8 @@ public class Security {
     public MatchResult executeFirstActivatedOrder(Matcher matcher){
         if(!activatedStopOrder.isEmpty()){
             StopLimitOrder order = activatedStopOrder.pop();
-            order.getBroker().releaseReservedCredit(order.getQuantity() * order.getPrice());
+            if(order.getSide() == Side.BUY)
+                order.getBroker().releaseReservedCredit(order.getQuantity() * order.getPrice());
             return matcher.execute(order);
         }
         return null;
