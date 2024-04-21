@@ -33,8 +33,9 @@ public class Security {
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
         if(!isActive(order))
-
-        return matcher.execute(order);
+            return handleInacvtiveOrder((StopLimitOrder) order);
+        else
+            return handleExecution(order, matcher);
     }
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
@@ -56,7 +57,7 @@ public class Security {
             throw new InvalidRequestException(Message.CANNOT_SPECIFY_PEAK_SIZE_FOR_A_NON_ICEBERG_ORDER);
 
         if (!order.isYourMinExecQuantity(updateOrderRq.getMinimumExecutionQuantity()))
-            return MatchResult.chaningMinExecQuantityWhileUpdating();
+            return MatchResult.changingMinExecQuantityWhileUpdating();
         if (updateOrderRq.getSide() == Side.SELL &&
                 !order.getShareholder().hasEnoughPositionsOn(this,
                 orderBook.totalSellQuantityByShareholder(order.getShareholder()) - order.getQuantity() + updateOrderRq.getQuantity()))
@@ -125,8 +126,20 @@ public class Security {
             return false;
     }
 
-    private void handleInacvtiveOrder(StopLimitOrder order){
-        order.getBroker().reserveCredit(order.getPrice() * order.getQuantity());
-        stopLimitOrderBook.enqueue(order);
+    private MatchResult handleInacvtiveOrder(StopLimitOrder order){
+        if(order.getBroker().reserveCredit(order.getPrice() * order.getQuantity())){
+            stopLimitOrderBook.enqueue(order);
+            return MatchResult.stopLimitOrderQueued();
+        }
+        return MatchResult.invalidStopLimitOrder();
+    }
+
+    private MatchResult handleExecution(Order order, Matcher matcher){
+        MatchResult executionResult = matcher.execute(order);
+        if((order instanceof StopLimitOrder) && executionResult.outcome() == MatchingOutcome.EXECUTED)
+            return MatchResult.stopLimitOrderExecutedDirectly(executionResult.getRemainder(),
+                    executionResult.getTrades());
+        else
+            return  executionResult;
     }
 }
