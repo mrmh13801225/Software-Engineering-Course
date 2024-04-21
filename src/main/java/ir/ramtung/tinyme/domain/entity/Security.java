@@ -8,6 +8,10 @@ import ir.ramtung.tinyme.messaging.Message;
 import lombok.Builder;
 import lombok.Getter;
 
+import javax.swing.text.html.HTMLDocument;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 @Getter
@@ -24,6 +28,8 @@ public class Security {
     private long price = 0;
     @Builder.Default
     private StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
+    @Builder.Default
+    private LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
 
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
@@ -32,10 +38,10 @@ public class Security {
                 orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
-        if(!isActive(order))
-            return handleInacvtiveOrder((StopLimitOrder) order);
+        if(order instanceof StopLimitOrder)
+            return handleStopLimitOrder((StopLimitOrder) order);
         else
-            return handleExecution(order, matcher);
+            return matcher.execute(order);
     }
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
@@ -126,7 +132,7 @@ public class Security {
             return false;
     }
 
-    private MatchResult handleInacvtiveOrder(StopLimitOrder order){
+    private MatchResult handleStopLimitOrder(StopLimitOrder order){
         if(order.getBroker().reserveCredit(order.getPrice() * order.getQuantity())){
             stopLimitOrderBook.enqueue(order);
             return MatchResult.stopLimitOrderQueued();
@@ -134,12 +140,34 @@ public class Security {
         return MatchResult.invalidStopLimitOrder();
     }
 
-    private MatchResult handleExecution(Order order, Matcher matcher){
-        MatchResult executionResult = matcher.execute(order);
-        if((order instanceof StopLimitOrder) && executionResult.outcome() == MatchingOutcome.EXECUTED)
-            return MatchResult.stopLimitOrderExecutedDirectly(executionResult.getRemainder(),
-                    executionResult.getTrades());
-        else
-            return  executionResult;
+
+    public ArrayList<MatchResult> handleActivation(){
+        LinkedList<StopLimitOrder> newActivatedOrders = stopLimitOrderBook.popActivatedOrders(price);
+        ArrayList<MatchResult> activationResults = new ArrayList<>();
+        activatedStopOrder.addAll(newActivatedOrders);
+        Iterator<StopLimitOrder> iterator = newActivatedOrders.iterator();
+        while (iterator.hasNext()){
+            activationResults.add(MatchResult.stopLimitOrderActivated(iterator.next()));
+        }
+        return activationResults;
     }
+
+    public MatchResult executeFirstActivatedOrder(Matcher matcher){
+        if(!activatedStopOrder.isEmpty()){
+            Order order =(Order) activatedStopOrder.pop();
+            return matcher.execute(order);
+        }
+        return null;
+    }
+
+    public ArrayList<MatchResult> executeActivatedStopOrders(Matcher matcher){
+        ArrayList<MatchResult> executedResults = new ArrayList<>();
+        MatchResult temp = executeFirstActivatedOrder(matcher);
+        while (temp != null){
+            executedResults.add(temp);
+            temp = executeFirstActivatedOrder(matcher);
+        }
+        return executedResults;
+    }
+
 }
