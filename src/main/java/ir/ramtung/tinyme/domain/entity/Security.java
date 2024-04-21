@@ -103,7 +103,8 @@ public class Security {
         if (isStopLimitOrder(enterOrderRq))
             order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder,
-                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(), enterOrderRq.getStopPrice());
+                    enterOrderRq.getEntryTime(), enterOrderRq.getMinimumExecutionQuantity(),
+                    enterOrderRq.getStopPrice(), enterOrderRq.getRequestId());
         else if (!isIceberg(enterOrderRq))
             order = new Order(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
                     enterOrderRq.getQuantity(), enterOrderRq.getPrice(), broker, shareholder, enterOrderRq.getEntryTime(),
@@ -137,7 +138,7 @@ public class Security {
             stopLimitOrderBook.enqueue(order);
             return MatchResult.stopLimitOrderQueued();
         }
-        return MatchResult.invalidStopLimitOrder();
+        return MatchResult.notEnoughCredit();
     }
 
 
@@ -154,7 +155,8 @@ public class Security {
 
     public MatchResult executeFirstActivatedOrder(Matcher matcher){
         if(!activatedStopOrder.isEmpty()){
-            Order order =(Order) activatedStopOrder.pop();
+            StopLimitOrder order = activatedStopOrder.pop();
+            order.getBroker().releaseReservedCredit(order.getQuantity() * order.getPrice());
             return matcher.execute(order);
         }
         return null;

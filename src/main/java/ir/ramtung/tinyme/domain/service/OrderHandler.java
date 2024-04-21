@@ -15,6 +15,7 @@ import ir.ramtung.tinyme.repository.ShareholderRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,8 +59,7 @@ public class OrderHandler {
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
                         List.of(Message.INVALID_STOP_PRICE)));
 
-            if ((enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER) && (enterOrderRq.getMinimumExecutionQuantity() > 0) &&
-                    (enterOrderRq.getStopPrice() > 0))
+            if ((enterOrderRq.getMinimumExecutionQuantity() > 0) && (enterOrderRq.getStopPrice() > 0))
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
                         List.of(Message.STOP_LIMIT_ORDER_CANNOT_HAVE_MIN_EXEC)));
 
@@ -147,6 +147,21 @@ public class OrderHandler {
             eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
         if (!matchResult.trades().isEmpty()) {
             eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+        }
+    }
+
+    private void resultsPublisher(MatchResult matchResult, EnterOrderRq enterOrderRq,
+                                  ArrayList<MatchResult> activationResults,
+                                  ArrayList<MatchResult> activatedOrdersExecutionResults){
+        orderSituationPublisher(enterOrderRq, matchResult);
+
+    }
+
+    private void publishActivations(ArrayList<MatchResult> activationResults){
+        Iterator<MatchResult> it = activationResults.iterator();
+        while (it.hasNext()){
+            StopLimitOrder temp = (StopLimitOrder) it.next().getRemainder();
+            eventPublisher.publish(new OrderActivatedEvent(temp.getReqId(), temp.getOrderId()));
         }
     }
 
