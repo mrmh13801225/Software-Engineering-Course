@@ -21,7 +21,8 @@ public class StopLimitOrderBook{
         List<StopLimitOrder> queue = getQueue(order.getSide());
         ListIterator<StopLimitOrder> it = queue.listIterator();
         while (it.hasNext()) {
-            if (order.queuesBefore(it.next())) {
+            var temp = it.next();
+            if (order.queuesBefore(temp)) {
                 it.previous();
                 break;
             }
@@ -47,7 +48,8 @@ public class StopLimitOrderBook{
         var queue = getQueue(side);
         var it = queue.listIterator();
         while (it.hasNext()) {
-            if (it.next().getOrderId() == orderId) {
+            var temp = it.next();
+            if (temp.getOrderId() == orderId) {
                 it.remove();
                 return true;
             }
@@ -60,16 +62,18 @@ public class StopLimitOrderBook{
         ListIterator<StopLimitOrder> itBuy = buyQueue.listIterator();
         ListIterator<StopLimitOrder> itSell = sellQueue.listIterator();
         while (itBuy.hasNext()) {
-            if (itBuy.next().isActivated(price)) {
-                activatedOrders.add(itBuy.next());
+            StopLimitOrder temp = itBuy.next();
+            if (temp.isActivated(price)) {
+                activatedOrders.add(temp);
                 itBuy.remove();
             }
             else
                 break;
         }
         while (itSell.hasNext()) {
-            if (itSell.next().isActivated(price)){
-                activatedOrders.add(itSell.next());
+            StopLimitOrder temp = itSell.next();
+            if (temp.isActivated(price)){
+                activatedOrders.add(temp);
                 itSell.remove();
             }
             else
