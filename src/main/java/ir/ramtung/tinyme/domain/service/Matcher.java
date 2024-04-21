@@ -3,6 +3,7 @@ package ir.ramtung.tinyme.domain.service;
 import ir.ramtung.tinyme.domain.entity.*;
 import org.springframework.stereotype.Service;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -96,7 +97,14 @@ public class Matcher {
                 trade.getSell().getShareholder().decPosition(trade.getSecurity(), trade.getQuantity());
             }
         }
+        updateSecurityPrice(result);
         return result;
     }
+
+    private void updateSecurityPrice(MatchResult result){
+        if (!result.getTrades().isEmpty())
+            result.remainder().getSecurity().updatePrice(result.getTrades().getLast().getPrice());
+    }
+
 
 }

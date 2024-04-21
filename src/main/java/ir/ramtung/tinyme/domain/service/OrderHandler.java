@@ -82,7 +82,7 @@ public class OrderHandler {
                 eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
                         List.of(Message.CANNOT_CHANGE_MIN_EXEC_QUANTITY_WHILE_UPDATING_REQUEST)));
             }
-            orderSituationPublisher(enterOrderRq, matchResult);
+            resultsPublisher(matchResult, enterOrderRq, activationResults, activatedOrdersExecutionResults);
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), ex.getReasons()));
         }
@@ -154,6 +154,8 @@ public class OrderHandler {
                                   ArrayList<MatchResult> activationResults,
                                   ArrayList<MatchResult> activatedOrdersExecutionResults){
         orderSituationPublisher(enterOrderRq, matchResult);
+        publishActivations(activationResults);
+        publishActivatedOrdersExecution(activatedOrdersExecutionResults);
 
     }
 
@@ -162,6 +164,17 @@ public class OrderHandler {
         while (it.hasNext()){
             StopLimitOrder temp = (StopLimitOrder) it.next().getRemainder();
             eventPublisher.publish(new OrderActivatedEvent(temp.getReqId(), temp.getOrderId()));
+        }
+    }
+
+    public void publishActivatedOrdersExecution (ArrayList<MatchResult> activatedOrdersExecutionResults){
+        Iterator<MatchResult> it = activatedOrdersExecutionResults.iterator();
+        while (it.hasNext()){
+            MatchResult matchResult = it.next();
+            StopLimitOrder temp = (StopLimitOrder) matchResult.getRemainder();
+            if (!matchResult.trades().isEmpty()) {
+                eventPublisher.publish(new OrderExecutedEvent(temp.getReqId(), temp.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+            }
         }
     }
 

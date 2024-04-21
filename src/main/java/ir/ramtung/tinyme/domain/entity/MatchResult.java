@@ -47,6 +47,10 @@ public final class MatchResult {
     public static MatchResult stopLimitOrderActivated(Order remainder){
         return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_ACCEPTED, remainder, new LinkedList<>());
     }
+
+    public static MatchResult stopLimitOrderUpdated(){
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_UPDATED, null, new LinkedList<>());
+    }
     private MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades) {
         this.outcome = outcome;
         this.remainder = remainder;
