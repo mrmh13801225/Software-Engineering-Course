@@ -63,7 +63,7 @@ public class Security {
 
     public MatchResult updateOrder(EnterOrderRq updateOrderRq, Matcher matcher) throws InvalidRequestException {
         MatchResult matchResult ;
-        if (updateOrderRq.getStopPrice() > 0) {
+        if (updateOrderRq.getStopPrice() == 0) {
             StopLimitOrder stopOrder = stopLimitOrderBook.findByOrderId(updateOrderRq.getSide(),
                     updateOrderRq.getOrderId());
             Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());

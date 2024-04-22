@@ -83,9 +83,9 @@ public class StopLimitOrder extends Order{
 
     public boolean isActivated(long price){
         if (this.side == Side.BUY) {
-            return price > this.stopPrice;
+            return price >= this.stopPrice;
         } else {
-            return price < this.stopPrice;
+            return price <= this.stopPrice;
         }
     }
 
