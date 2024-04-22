@@ -214,6 +214,8 @@ public class Security {
         MatchResult temp = executeFirstActivatedOrder(matcher);
         while (temp != null){
             executedResults.add(temp);
+            ArrayList<MatchResult> newActivated = handleActivation();
+            executedResults.addAll(newActivated);
             temp = executeFirstActivatedOrder(matcher);
         }
         return executedResults;

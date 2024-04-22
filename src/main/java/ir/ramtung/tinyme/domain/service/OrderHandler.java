@@ -172,6 +172,8 @@ public class OrderHandler {
         while (it.hasNext()){
             MatchResult matchResult = it.next();
             StopLimitOrder temp = (StopLimitOrder) matchResult.getRemainder();
+            if (matchResult.getOutcome() == MatchingOutcome.STOP_LIMIT_ORDER_QUEUED)
+                eventPublisher.publish(new OrderActivatedEvent(temp.getReqId(), temp.getOrderId()));
             if (!matchResult.trades().isEmpty()) {
                 eventPublisher.publish(new OrderExecutedEvent(temp.getReqId(), temp.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
             }

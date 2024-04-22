@@ -45,7 +45,7 @@ public final class MatchResult {
     }
 
     public static MatchResult stopLimitOrderActivated(Order remainder){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_ACCEPTED, remainder, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_QUEUED, remainder, new LinkedList<>());
     }
 
     public static MatchResult stopLimitOrderUpdated(){
