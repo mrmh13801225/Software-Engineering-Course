@@ -139,6 +139,16 @@ public class OrderHandler {
         return false;
     }
 
+    private  void orderSituationPublisher(EnterOrderRq enterOrderRq, MatchResult matchResult){
+        if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
+            eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+        else
+            eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
+        if (!matchResult.trades().isEmpty()) {
+            eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
+        }
+    }
+
     private void publishActivations(ArrayList<MatchResult> activationResults){
         Iterator<MatchResult> it = activationResults.iterator();
         while (it.hasNext()){
@@ -189,6 +199,16 @@ public class OrderHandler {
         }
     }
 
+    private void validateDeleteOrderRq(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
+        List<String> errors = new LinkedList<>();
+        if (deleteOrderRq.getOrderId() <= 0)
+            errors.add(Message.INVALID_ORDER_ID);
+        if (securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin()) == null)
+            errors.add(Message.UNKNOWN_SECURITY_ISIN);
+        if (!errors.isEmpty())
+            throw new InvalidRequestException(errors);
+    }
+
     public void handleDeleteOrder(DeleteOrderRq deleteOrderRq) {
         try {
             validateDeleteOrderRq(deleteOrderRq);
@@ -200,25 +220,4 @@ public class OrderHandler {
         }
     }
 
-
-
-    private void validateDeleteOrderRq(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
-        List<String> errors = new LinkedList<>();
-        if (deleteOrderRq.getOrderId() <= 0)
-            errors.add(Message.INVALID_ORDER_ID);
-        if (securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin()) == null)
-            errors.add(Message.UNKNOWN_SECURITY_ISIN);
-        if (!errors.isEmpty())
-            throw new InvalidRequestException(errors);
-    }
-
-    private  void orderSituationPublisher(EnterOrderRq enterOrderRq, MatchResult matchResult){
-        if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
-            eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
-        else
-            eventPublisher.publish(new OrderUpdatedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
-        if (!matchResult.trades().isEmpty()) {
-            eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
-        }
-    }
 }

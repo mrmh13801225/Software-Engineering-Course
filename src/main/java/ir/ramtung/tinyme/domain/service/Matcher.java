@@ -76,29 +76,34 @@ public class Matcher {
             rollbackSellOrder(newOrder, trades, it);
     }
 
-    public MatchResult execute(Order order) {
-        MatchResult result = match(order);
-        if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
-            return result;
+    private MatchResult handleOrderRemainderCredit(MatchResult result ,Order order){
+        if (!order.getBroker().hasEnoughCredit(order.getValue())) {
+            rollbackTrades(order, result.trades());
+            return MatchResult.notEnoughCredit();
+        }
+        order.getBroker().decreaseCreditBy(order.getValue());
+        return null;
+    }
 
+    private MatchResult handleOrderRemainder(MatchResult result ,Order order){
         if (result.remainder().getQuantity() > 0) {
             if (order.getSide() == Side.BUY) {
-                if (!order.getBroker().hasEnoughCredit(order.getValue())) {
-                    rollbackTrades(order, result.trades());
-                    return MatchResult.notEnoughCredit();
-                }
-                order.getBroker().decreaseCreditBy(order.getValue());
+                MatchResult creditHandlingResult = handleOrderRemainderCredit(result ,order) ;
+                if(creditHandlingResult != null)
+                    return creditHandlingResult ;
             }
             order.getSecurity().getOrderBook().enqueue(result.remainder());
         }
+        return null;
+    }
+
+    private void handleTradesPossitions(MatchResult result){
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {
                 trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
                 trade.getSell().getShareholder().decPosition(trade.getSecurity(), trade.getQuantity());
             }
         }
-        updateSecurityPrice(result);
-        return result;
     }
 
     private void updateSecurityPrice(MatchResult result){
@@ -106,5 +111,17 @@ public class Matcher {
             result.remainder().getSecurity().updatePrice(result.getTrades().getLast().getPrice());
     }
 
+    public MatchResult execute(Order order) {
+        MatchResult result = match(order);
+        if (result.outcome() == MatchingOutcome.NOT_ENOUGH_CREDIT)
+            return result;
+
+        MatchResult remainderHandlingResult = handleOrderRemainder(result ,order);
+        if (remainderHandlingResult != null)
+            return remainderHandlingResult;
+        handleTradesPossitions(result);
+        updateSecurityPrice(result);
+        return result;
+    }
 
 }
