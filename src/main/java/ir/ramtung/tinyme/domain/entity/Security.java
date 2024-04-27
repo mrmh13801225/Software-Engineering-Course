@@ -50,21 +50,37 @@ public class Security {
         return handleOrderExecution(order ,matcher);
     }
 
-    public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
+    private Order findOrder(DeleteOrderRq deleteOrderRq){
         Order order = orderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
         StopLimitOrder inactiveOrder = stopLimitOrderBook.findByOrderId(deleteOrderRq.getSide(),
                 deleteOrderRq.getOrderId());
-        if (order == null && inactiveOrder == null)
-            throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
-        if (order != null && order.getSide() == Side.BUY)
-            order.getBroker().increaseCreditBy(order.getValue());
-        if (inactiveOrder != null && inactiveOrder.getSide() == Side.BUY)
-            inactiveOrder.getBroker().releaseReservedCredit(
-                    inactiveOrder.getQuantity() * inactiveOrder.getPrice());
-        if (inactiveOrder == null)
-            orderBook.removeByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
-        else
+        return (order != null) ? order : (inactiveOrder != null) ? inactiveOrder : null ;
+    }
+
+    private void removeOrder(Order order ,DeleteOrderRq deleteOrderRq){
+        if (order instanceof StopLimitOrder)
             stopLimitOrderBook.removeByOrderId(deleteOrderRq.getSide(),deleteOrderRq.getOrderId());
+        else
+            orderBook.removeByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
+    }
+
+    private void handleDeletedOrderCredit(Order order){
+        if (order.getSide() == Side.BUY){
+            if (order instanceof StopLimitOrder)
+                order.getBroker().releaseReservedCredit(order.getValue());
+            else
+                order.getBroker().increaseCreditBy(order.getValue());
+        }
+    }
+
+    public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
+        Order order = findOrder(deleteOrderRq);
+
+        if (order == null)
+            throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
+
+        handleDeletedOrderCredit(order);
+        removeOrder(order ,deleteOrderRq);
     }
 
     public MatchResult updateOrder(EnterOrderRq updateOrderRq, Matcher matcher) throws InvalidRequestException {
