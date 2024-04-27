@@ -10,6 +10,9 @@ public final class MatchResult {
     private final MatchingOutcome outcome;
     private final Order remainder;
     private final LinkedList<Trade> trades;
+    static final private String MATCH_RESULT_STRING = "MatchResult[";
+    static final private String REMAINDER_STRING = "remainder=";
+    static final private String TRADES_STRING = "trades=";
 
     public static MatchResult executed(Order remainder, List<Trade> trades) {
         return new MatchResult(MatchingOutcome.EXECUTED, remainder, new LinkedList<>(trades));
@@ -84,9 +87,9 @@ public final class MatchResult {
 
     @Override
     public String toString() {
-        return "MatchResult[" +
-                "remainder=" + remainder + ", " +
-                "trades=" + trades + ']';
+        return MATCH_RESULT_STRING +
+                REMAINDER_STRING + remainder + ", " +
+                TRADES_STRING + trades + ']';
     }
 
 

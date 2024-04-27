@@ -26,7 +26,7 @@ public class IcebergOrder extends Order {
                         Shareholder shareholder, LocalDateTime entryTime, int peakSize, int displayedQuantity,
                         OrderStatus status) {
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, peakSize, displayedQuantity,
-                     status, 0l);
+                     status, 0L);
     }
 
     public IcebergOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
@@ -51,7 +51,7 @@ public class IcebergOrder extends Order {
     public IcebergOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                         Shareholder shareholder, LocalDateTime entryTime, int peakSize) {
         this(orderId, security, side, quantity, price, broker, shareholder, entryTime, peakSize, OrderStatus.NEW,
-                0l);
+                0L);
     }
 
     public IcebergOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
@@ -63,7 +63,7 @@ public class IcebergOrder extends Order {
 
     public IcebergOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker,
                         Shareholder shareholder, int peakSize) {
-        this(orderId, security, side, quantity, price, broker, shareholder, peakSize, 0l);
+        this(orderId, security, side, quantity, price, broker, shareholder, peakSize, 0L);
     }
 
     @Override
@@ -80,21 +80,18 @@ public class IcebergOrder extends Order {
 
     @Override
     public int getQuantity() {
-        if (status == OrderStatus.NEW)
+        if (isOrderNew())
             return super.getQuantity();
         return displayedQuantity;
     }
 
     @Override
     public void decreaseQuantity(int amount) {
-        if (status == OrderStatus.NEW) {
+        if (isOrderNew()) {
             super.decreaseQuantity(amount);
             return;
         }
-        if (amount > displayedQuantity)
-            throw new IllegalArgumentException();
-        quantity -= amount;
-        displayedQuantity -= amount;
+        handleIcebergDecreaseQuantity(amount);
     }
 
     public void replenish() {
@@ -117,5 +114,16 @@ public class IcebergOrder extends Order {
             displayedQuantity = Math.min(displayedQuantity, updateOrderRq.getPeakSize());
         }
         peakSize = updateOrderRq.getPeakSize();
+    }
+
+    public boolean isOrderNew(){
+        return OrderStatus.NEW == status;
+    }
+
+    public void handleIcebergDecreaseQuantity(int amount){
+        if (amount > displayedQuantity)
+            throw new IllegalArgumentException();
+        quantity -= amount;
+        displayedQuantity -= amount;
     }
 }
