@@ -9,6 +9,65 @@ import java.util.ListIterator;
 
 @Service
 public class Matcher {
+
+    private MatchResult handleTrade(Order newOrder ,Order matchingOrder ,LinkedList<Trade> trades){
+
+        Trade trade = new Trade(newOrder.getSecurity(), matchingOrder.getPrice(), Math.min(newOrder.getQuantity(),
+                matchingOrder.getQuantity()), newOrder, matchingOrder);
+
+        if (newOrder.getSide() == Side.BUY) {
+            if (trade.buyerHasEnoughCredit())
+                trade.decreaseBuyersCredit();
+            else {
+                rollbackTrades(newOrder, trades);
+                return MatchResult.notEnoughCredit();
+            }
+        }
+
+        trade.increaseSellersCredit();
+        trades.add(trade);
+
+        return null;
+    }
+
+    private void handleIcebergMatchingOrder(IcebergOrder icebergOrder ,OrderBook orderBook){
+        icebergOrder.decreaseQuantity(icebergOrder.getQuantity());
+        icebergOrder.replenish();
+        if (icebergOrder.getQuantity() > 0)
+            orderBook.enqueue(icebergOrder);
+    }
+
+    private void handleNewOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+        newOrder.decreaseQuantity(matchingOrder.getQuantity());
+        orderBook.removeFirst(matchingOrder.getSide());
+        if (matchingOrder instanceof IcebergOrder icebergOrder) {
+            handleIcebergMatchingOrder(icebergOrder ,orderBook );
+        }
+    }
+
+    private void handleMatchingOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+        matchingOrder.decreaseQuantity(newOrder.getQuantity());
+        newOrder.makeQuantityZero();
+    }
+
+    private void handleTradeSidesRemainder(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+        if (newOrder.getQuantity() >= matchingOrder.getQuantity())
+            handleNewOrderHasRemainderSituation(newOrder ,matchingOrder ,orderBook );
+        else
+            handleMatchingOrderHasRemainderSituation(newOrder ,matchingOrder ,orderBook );
+    }
+
+    private MatchResult matchFirstMatchingOrder(Order newOrder ,OrderBook orderBook ,LinkedList<Trade> trades ,
+                                                Order matchingOrder){
+        MatchResult tradeResult = handleTrade(newOrder ,matchingOrder ,trades );
+        if (tradeResult != null)
+            return tradeResult;
+
+        handleTradeSidesRemainder(newOrder ,matchingOrder ,orderBook );
+
+        return null;
+    }
+
     public MatchResult match(Order newOrder) {
         OrderBook orderBook = newOrder.getSecurity().getOrderBook();
         LinkedList<Trade> trades = new LinkedList<>();
@@ -17,32 +76,9 @@ public class Matcher {
             Order matchingOrder = orderBook.matchWithFirst(newOrder);
             if (matchingOrder == null)
                 break;
-
-            Trade trade = new Trade(newOrder.getSecurity(), matchingOrder.getPrice(), Math.min(newOrder.getQuantity(), matchingOrder.getQuantity()), newOrder, matchingOrder);
-            if (newOrder.getSide() == Side.BUY) {
-                if (trade.buyerHasEnoughCredit())
-                    trade.decreaseBuyersCredit();
-                else {
-                    rollbackTrades(newOrder, trades);
-                    return MatchResult.notEnoughCredit();
-                }
-            }
-            trade.increaseSellersCredit();
-            trades.add(trade);
-
-            if (newOrder.getQuantity() >= matchingOrder.getQuantity()) {
-                newOrder.decreaseQuantity(matchingOrder.getQuantity());
-                orderBook.removeFirst(matchingOrder.getSide());
-                if (matchingOrder instanceof IcebergOrder icebergOrder) {
-                    icebergOrder.decreaseQuantity(matchingOrder.getQuantity());
-                    icebergOrder.replenish();
-                    if (icebergOrder.getQuantity() > 0)
-                        orderBook.enqueue(icebergOrder);
-                }
-            } else {
-                matchingOrder.decreaseQuantity(newOrder.getQuantity());
-                newOrder.makeQuantityZero();
-            }
+            MatchResult matchResult = matchFirstMatchingOrder(newOrder ,orderBook ,trades ,matchingOrder);
+            if (matchResult != null)
+                return matchResult;
         }
         if (!newOrder.isMinExecQuantityConditionMet()){
             rollbackTrades(newOrder, trades);
