@@ -225,8 +225,8 @@ public class Security {
         if(!activatedStopOrder.isEmpty()){
             StopLimitOrder order = activatedStopOrder.pop();
             if(order.getSide() == Side.BUY)
-                order.getBroker().releaseReservedCredit(order.getQuantity() * order.getPrice());
-            return matcher.execute(order);
+                order.getBroker().releaseReservedCredit(order.getValue());
+            return matcher.execute(order.toOrder());
         }
         return null;
     }
