@@ -31,17 +31,23 @@ public class Security {
     @Builder.Default
     private LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
 
+    private boolean doseShareholderHaveEnoughPositions (EnterOrderRq enterOrderRq, Shareholder shareholder){
+        return !(enterOrderRq.getSide() == Side.SELL && !shareholder.hasEnoughPositionsOn(this,
+                orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()));
+    }
 
-    public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (enterOrderRq.getSide() == Side.SELL &&
-                !shareholder.hasEnoughPositionsOn(this,
-                orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()))
-            return MatchResult.notEnoughPositions();
-        Order order = createNewOrder(enterOrderRq, broker, shareholder);
+    private MatchResult handleOrderExecution (Order order ,Matcher matcher){
         if(order instanceof StopLimitOrder)
             return handleStopLimitOrder((StopLimitOrder) order);
         else
             return matcher.execute(order);
+    }
+
+    public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
+        if (doseShareholderHaveEnoughPositions(enterOrderRq ,shareholder))
+            return MatchResult.notEnoughPositions();
+        Order order = createNewOrder(enterOrderRq, broker, shareholder);
+        return handleOrderExecution(order ,matcher);
     }
 
     public void deleteOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
