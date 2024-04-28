@@ -5,6 +5,7 @@ import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.Message;
+import ir.ramtung.tinyme.messaging.request.OrderEntryType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -30,9 +31,14 @@ public class Security {
     @Builder.Default
     private LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
 
-    private boolean doseShareholderHaveEnoughPositions (EnterOrderRq enterOrderRq, Shareholder shareholder){
+    private boolean doseShareholderHaveEnoughPositions (Order order ,EnterOrderRq enterOrderRq, Shareholder shareholder ){
+        int extraSharesNeeded ;
+        if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
+            extraSharesNeeded = enterOrderRq.getQuantity() ;
+        else
+            extraSharesNeeded = enterOrderRq.getQuantity() - order.getQuantity() ;
         return !(enterOrderRq.getSide() == Side.SELL && !shareholder.hasEnoughPositionsOn(this,
-                orderBook.totalSellQuantityByShareholder(shareholder) + enterOrderRq.getQuantity()));
+                orderBook.totalSellQuantityByShareholder(shareholder) + extraSharesNeeded));
     }
 
     private MatchResult handleOrderExecution (Order order ,Matcher matcher){
@@ -43,7 +49,7 @@ public class Security {
     }
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (!doseShareholderHaveEnoughPositions(enterOrderRq ,shareholder))
+        if (!doseShareholderHaveEnoughPositions(null ,enterOrderRq ,shareholder))
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
         return handleOrderExecution(order ,matcher);
@@ -95,7 +101,7 @@ public class Security {
 
         if (!order.isYourMinExecQuantity(updateOrderRq.getMinimumExecutionQuantity()))
             return MatchResult.changingMinExecQuantityWhileUpdating();
-        if (!doseShareholderHaveEnoughPositions(updateOrderRq ,order.getShareholder()))
+        if (!doseShareholderHaveEnoughPositions(order ,updateOrderRq ,order.getShareholder()))
             return MatchResult.notEnoughPositions();
         return null ;
     }
@@ -112,17 +118,8 @@ public class Security {
         }
     }
 
-    private MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
-            throws  InvalidRequestException{
-        Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
-        MatchResult validationResult = validateUpdateRequest(order ,updateOrderRq );
-        if(validationResult != null)
-            return validationResult;
-
-        updateActiveOrderCreditHandler(order ,updateOrderRq );
-        Order originalOrder = order.snapshot();
-        order.updateFromRequest(updateOrderRq);
-        if (!doesItLosePriority(order ,updateOrderRq )) {
+    private MatchResult handlePriorityLoss (Order order ,EnterOrderRq updateOrderRq ,boolean loosesPriority ){
+        if (!loosesPriority) {
             if (updateOrderRq.getSide() == Side.BUY) {
                 order.getBroker().decreaseCreditBy(order.getValue());
             }
@@ -130,6 +127,11 @@ public class Security {
         } else
             order.markAsNew();
 
+        return null ;
+    }
+
+    private MatchResult handleUpdateOrderExecution (EnterOrderRq updateOrderRq ,Matcher matcher ,Order order ,
+                                                    Order originalOrder){
         orderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
         MatchResult matchResult = matcher.execute(order);
         if (matchResult.outcome() != MatchingOutcome.EXECUTED) {
@@ -139,6 +141,27 @@ public class Security {
             }
         }
         return matchResult ;
+    }
+
+    private MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
+            throws  InvalidRequestException{
+        Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
+        MatchResult validationResult = validateUpdateRequest(order ,updateOrderRq );
+        if(validationResult != null)
+            return validationResult;
+
+        boolean loosesPriority = doesItLosePriority(order ,updateOrderRq );
+
+        updateActiveOrderCreditHandler(order ,updateOrderRq );
+        Order originalOrder = order.snapshot();
+        order.updateFromRequest(updateOrderRq);
+
+        MatchResult priorityLossResult = handlePriorityLoss(order ,updateOrderRq ,loosesPriority );
+        if (priorityLossResult != null)
+            return priorityLossResult;
+
+
+        return handleUpdateOrderExecution(updateOrderRq ,matcher ,order ,originalOrder ) ;
     }
 
     private MatchResult updateInActiveOrder(EnterOrderRq updateOrderRq) throws InvalidRequestException{
@@ -155,7 +178,7 @@ public class Security {
     }
 
     public MatchResult updateOrder(EnterOrderRq updateOrderRq, Matcher matcher) throws InvalidRequestException {
-        if (updateOrderRq.getStopPrice() == 0) 
+        if (updateOrderRq.getStopPrice() == 0)
             return updateActiveOrder(updateOrderRq ,matcher );
         else
             return updateInActiveOrder(updateOrderRq );
