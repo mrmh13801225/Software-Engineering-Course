@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 @Data
@@ -16,4 +18,5 @@ public class OrderExecutedEvent extends Event {
     private long requestId;
     private long orderId;
     private List<TradeDTO> trades;
+
 }
