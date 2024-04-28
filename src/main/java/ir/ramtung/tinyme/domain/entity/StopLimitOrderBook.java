@@ -19,16 +19,16 @@ public class StopLimitOrderBook{
 
     public void enqueue(StopLimitOrder order) {
         List<StopLimitOrder> queue = getQueue(order.getSide());
-        ListIterator<StopLimitOrder> it = queue.listIterator();
-        while (it.hasNext()) {
-            var temp = it.next();
-            if (order.queuesBefore(temp)) {
-                it.previous();
+        ListIterator<StopLimitOrder> iterator = queue.listIterator();
+        while (iterator.hasNext()) {
+            var next = iterator.next();
+            if (order.queuesBefore(next)) {
+                iterator.previous();
                 break;
             }
         }
         order.queue();
-        it.add(order);
+        iterator.add(order);
     }
 
     private LinkedList<StopLimitOrder> getQueue(Side side) {
@@ -46,39 +46,57 @@ public class StopLimitOrderBook{
 
     public boolean removeByOrderId(Side side, long orderId) {
         var queue = getQueue(side);
-        var it = queue.listIterator();
-        while (it.hasNext()) {
-            var temp = it.next();
-            if (temp.getOrderId() == orderId) {
-                it.remove();
+        var iterator = queue.listIterator();
+        while (iterator.hasNext()) {
+            var next = iterator.next();
+            if (next.getOrderId() == orderId) {
+                iterator.remove();
                 return true;
             }
         }
         return false;
     }
 
-    public LinkedList<StopLimitOrder> popActivatedOrders(long price){
-        LinkedList<StopLimitOrder> activatedOrders = new LinkedList<>();
-        ListIterator<StopLimitOrder> itBuy = buyQueue.listIterator();
-        ListIterator<StopLimitOrder> itSell = sellQueue.listIterator();
-        while (itBuy.hasNext()) {
-            StopLimitOrder temp = itBuy.next();
+    public LinkedList<StopLimitOrder> handleActivatedOrders(ListIterator<StopLimitOrder> iterator, LinkedList<StopLimitOrder> activatedOrders, long price) {
+        while (iterator.hasNext()) {
+            StopLimitOrder temp = iterator.next();
             if (temp.isActivated(price)) {
                 activatedOrders.add(temp);
-                itBuy.remove();
+                iterator.remove();
             }
             else
                 break;
         }
-        while (itSell.hasNext()) {
-            StopLimitOrder temp = itSell.next();
-            if (temp.isActivated(price)){
-                activatedOrders.add(temp);
-                itSell.remove();
-            }
-            else
-                break;
-        }
+
+        return activatedOrders;
+    }
+
+    public LinkedList<StopLimitOrder> popActivatedOrders(long price){
+        LinkedList<StopLimitOrder> activatedOrders = new LinkedList<>();
+        ListIterator<StopLimitOrder> buyIterator = buyQueue.listIterator();
+        ListIterator<StopLimitOrder> sellIterator = sellQueue.listIterator();
+
+        activatedOrders = handleActivatedOrders(buyIterator, activatedOrders, price);
+        activatedOrders = handleActivatedOrders(sellIterator, activatedOrders, price);
+
+//        while (buyIterator.hasNext()) {
+//            StopLimitOrder temp = buyIterator.next();
+//            if (temp.isActivated(price)) {
+//                activatedOrders.add(temp);
+//                buyIterator.remove();
+//            }
+//            else
+//                break;
+//        }
+//        while (sellIterator.hasNext()) {
+//            StopLimitOrder temp = sellIterator.next();
+//            if (temp.isActivated(price)){
+//                activatedOrders.add(temp);
+//                sellIterator.remove();
+//            }
+//            else
+//                break;
+//        }
 
         return activatedOrders;
     }
