@@ -28,12 +28,13 @@ public class Order {
     protected long minimumExecutionQuantity ;
     protected boolean isUpdated;
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity) {
+    public Order(long orderId, Security security, Side side, int initialQuantity, int quantity, int price, Broker broker, Shareholder shareholder,
+                 LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity, boolean isUpdated){
+//        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, 0L);
         this.orderId = orderId;
         this.security = security;
         this.side = side;
-        this.initialQuantity = quantity;
+        this.initialQuantity = initialQuantity;
         this.quantity = quantity;
         this.price = price;
         this.entryTime = entryTime;
@@ -41,49 +42,36 @@ public class Order {
         this.shareholder = shareholder;
         this.status = status;
         this.minimumExecutionQuantity = minimumExecutionQuantity;
-        this.isUpdated = false;
+        this.isUpdated = isUpdated;
     }
 
-    public Order(long orderId, Security security, Side side, int initialQuantity, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity,
-                 boolean isUpdated){
-        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, minimumExecutionQuantity);
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder,
+                 LocalDateTime entryTime, OrderStatus status, long minimumExecutionQuantity) {
+        this(orderId, security, side, quantity ,quantity, price, broker, shareholder, entryTime, status, 0L, false);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime, OrderStatus status) {
-        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, 0l);
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder,
+                 LocalDateTime entryTime, OrderStatus status) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, status, 0L);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime, long minimumExecutionQuantity) {
-        this.orderId = orderId;
-        this.security = security;
-        this.side = side;
-        this.initialQuantity = quantity;
-        this.quantity = quantity;
-        this.price = price;
-        this.entryTime = entryTime;
-        this.broker = broker;
-        this.shareholder = shareholder;
-        this.status = OrderStatus.NEW;
-        this.minimumExecutionQuantity = minimumExecutionQuantity;
-        this.isUpdated = false;
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder,
+                 LocalDateTime entryTime, long minimumExecutionQuantity) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, OrderStatus.NEW, minimumExecutionQuantity);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, LocalDateTime entryTime) {
-        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, 0l);
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder,
+                 LocalDateTime entryTime) {
+        this(orderId, security, side, quantity, price, broker, shareholder, entryTime, 0L);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder, long minimumExecutionQuantity) {
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder,
+                 long minimumExecutionQuantity) {
         this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), minimumExecutionQuantity);
     }
 
-    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker,
-                 Shareholder shareholder) {
-        this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), 0l);
+    public Order(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder) {
+        this(orderId, security, side, quantity, price, broker, shareholder, LocalDateTime.now(), 0L);
     }
 
     public Order snapshot() {

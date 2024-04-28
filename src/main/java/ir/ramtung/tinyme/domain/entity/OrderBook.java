@@ -19,12 +19,7 @@ public class OrderBook {
     public void enqueue(Order order) {
         List<Order> queue = getQueue(order.getSide());
         ListIterator<Order> it = queue.listIterator();
-        while (it.hasNext()) {
-            if (order.queuesBefore(it.next())) {
-                it.previous();
-                break;
-            }
-        }
+        iterateThroughQueue(it, order);
         order.queue();
         it.add(order);
     }
@@ -42,16 +37,15 @@ public class OrderBook {
         return null;
     }
 
-    public boolean removeByOrderId(Side side, long orderId) {
+    public void removeByOrderId(Side side, long orderId) {
         var queue = getQueue(side);
         var it = queue.listIterator();
         while (it.hasNext()) {
             if (it.next().getOrderId() == orderId) {
                 it.remove();
-                return true;
+                return;
             }
         }
-        return false;
     }
 
     public Order matchWithFirst(Order newOrder) {
@@ -86,5 +80,14 @@ public class OrderBook {
                 .filter(order -> order.getShareholder().equals(shareholder))
                 .mapToInt(Order::getTotalQuantity)
                 .sum();
+    }
+
+    public void iterateThroughQueue(ListIterator<Order> it, Order order){
+        while (it.hasNext()) {
+            if (order.queuesBefore(it.next())) {
+                it.previous();
+                break;
+            }
+        }
     }
 }
