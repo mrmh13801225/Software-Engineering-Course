@@ -52,6 +52,8 @@ public class Security {
 
     private Order findOrder(DeleteOrderRq deleteOrderRq){
         Order order = orderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
+        if (order instanceof StopLimitOrder)
+            order = ((StopLimitOrder) order).toOrder();
         StopLimitOrder inactiveOrder = stopLimitOrderBook.findByOrderId(deleteOrderRq.getSide(),
                 deleteOrderRq.getOrderId());
         return (order != null) ? order : (inactiveOrder != null) ? inactiveOrder : null ;
@@ -131,7 +133,7 @@ public class Security {
             }
             else {
                 stopLimitOrderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
-                matchResult = matcher.execute(stopOrder.toOrder());
+                matchResult = matcher.execute(stopOrder);
             }
         }
         else {
@@ -226,7 +228,7 @@ public class Security {
             StopLimitOrder order = activatedStopOrder.pop();
             if(order.getSide() == Side.BUY)
                 order.getBroker().releaseReservedCredit(order.getValue());
-            return matcher.execute(order.toOrder());
+            return matcher.execute(order);
         }
         return null;
     }

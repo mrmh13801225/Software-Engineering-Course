@@ -685,7 +685,7 @@ public class OrderHandlerTest {
         //shareholder.decPosition(security, 99_500);
         broker3.increaseCreditBy(100_000_000);
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 440, 545, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 1));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 3, LocalDateTime.now(), Side.BUY, 440, 545, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 420));
 
         verify(eventPublisher).publish(any(OrderUpdatedEvent.class));
         assertThat(orders.get(2).getMinimumExecutionQuantity()).isEqualTo(420);
@@ -705,7 +705,7 @@ public class OrderHandlerTest {
         //shareholder.decPosition(security, 99_500);
         broker1.increaseCreditBy(100_000_000);
 
-        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 6, LocalDateTime.now(), Side.SELL, 350, 580, broker1.getBrokerId(), shareholder.getShareholderId(), 0, 1));
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(1, "ABC", 6, LocalDateTime.now(), Side.SELL, 350, 580, broker1.getBrokerId(), shareholder.getShareholderId(), 0, 120));
 
         verify(eventPublisher).publish(any(OrderUpdatedEvent.class));
         assertThat(orders.get(3).getMinimumExecutionQuantity()).isEqualTo(120);
