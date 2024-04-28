@@ -79,25 +79,6 @@ public class StopLimitOrderBook{
         activatedOrders = handleActivatedOrders(buyIterator, activatedOrders, price);
         activatedOrders = handleActivatedOrders(sellIterator, activatedOrders, price);
 
-//        while (buyIterator.hasNext()) {
-//            StopLimitOrder temp = buyIterator.next();
-//            if (temp.isActivated(price)) {
-//                activatedOrders.add(temp);
-//                buyIterator.remove();
-//            }
-//            else
-//                break;
-//        }
-//        while (sellIterator.hasNext()) {
-//            StopLimitOrder temp = sellIterator.next();
-//            if (temp.isActivated(price)){
-//                activatedOrders.add(temp);
-//                sellIterator.remove();
-//            }
-//            else
-//                break;
-//        }
-
         return activatedOrders;
     }
 
