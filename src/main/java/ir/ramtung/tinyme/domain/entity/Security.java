@@ -44,7 +44,7 @@ public class Security {
     }
 
     public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (doseShareholderHaveEnoughPositions(enterOrderRq ,shareholder))
+        if (!doseShareholderHaveEnoughPositions(enterOrderRq ,shareholder))
             return MatchResult.notEnoughPositions();
         Order order = createNewOrder(enterOrderRq, broker, shareholder);
         return handleOrderExecution(order ,matcher);
