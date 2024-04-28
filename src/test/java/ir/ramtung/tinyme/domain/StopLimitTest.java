@@ -100,7 +100,7 @@ public class StopLimitTest {
         );
         orders.forEach(order -> security.getOrderBook().enqueue(order));
         broker3.increaseCreditBy(1000_000);
-        StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
+        StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker2, shareholder, 0, 450); //stoplimit
         orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 450));
         verify(eventPublisher).publish(any(OrderAcceptedEvent.class));
     }
@@ -120,6 +120,15 @@ public class StopLimitTest {
         security.getStopLimitOrderBook().enqueue(order1);
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 490));
         verify(eventPublisher).publish(any(OrderUpdatedEvent.class));
+    }
+
+
+    @Test
+    void activate_buy_order() {
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.SELL, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 570));
+
+
+
     }
 
     @Test
@@ -172,7 +181,7 @@ public class StopLimitTest {
     }
 
     @Test
-    void create_new_iceberg_buyer_order_with_stop_limit_order() {
+    void update_stoplimit_order_with_peaksize() {
         StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
         security.getStopLimitOrderBook().enqueue(order1);
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 90, 490));
@@ -230,7 +239,9 @@ public class StopLimitTest {
         //////////stopLimit har 3tashun faal mishe va bayad check konim ke har 3ta trade beshan
         //verify(eventPublisher).publish(new OrderExecutedEvent(2, 103, List.of(new TradeDTO(trade2))));
 
-        //assertThat(broker1.getCredit()).isEqualTo(1000_000 + (500 * 30) + (440 * 20));
+        assertThat(broker1.getCredit()).isEqualTo((440 * 20));
+        assertThat(broker3.getCredit()).isEqualTo((500 * 30));
+
     }
 
 
