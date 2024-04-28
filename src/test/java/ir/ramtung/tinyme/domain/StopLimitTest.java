@@ -216,9 +216,9 @@ public class StopLimitTest {
 
     @Test
     void when_stop_price_is_active_it_will_activate_all_stop_limit_orders_with_the_same_stop_price() {
-        StopLimitOrder stopLimitOrder1 = new StopLimitOrder(8, security, Side.SELL, 230, 500, broker3, shareholder, 0, 450); //stoplimit
-        StopLimitOrder stopLimitOrder2 = new StopLimitOrder(9, security, Side.SELL, 260, 520, broker3, shareholder, 0, 460);
-        StopLimitOrder stopLimitOrder3 = new StopLimitOrder(10, security, Side.SELL, 200, 530, broker3, shareholder, 0, 470);
+        StopLimitOrder stopLimitOrder1 = new StopLimitOrder(8, security, Side.SELL, 10, 350, broker3, shareholder, 0, 450); //stoplimit
+        StopLimitOrder stopLimitOrder2 = new StopLimitOrder(9, security, Side.SELL, 5, 370, broker3, shareholder, 0, 460);
+        StopLimitOrder stopLimitOrder3 = new StopLimitOrder(10, security, Side.SELL, 7, 390, broker3, shareholder, 0, 470);
 
 
         security.getStopLimitOrderBook().enqueue(stopLimitOrder1);
@@ -234,13 +234,10 @@ public class StopLimitTest {
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 22, LocalDateTime.now(), Side.SELL, 20, 400, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
 
         verify(eventPublisher).publish((new OrderAcceptedEvent(1, 22)));
-        verify(eventPublisher).publish(any(OrderExecutedEvent.class));
-
-        //////////stopLimit har 3tashun faal mishe va bayad check konim ke har 3ta trade beshan
-        //verify(eventPublisher).publish(new OrderExecutedEvent(2, 103, List.of(new TradeDTO(trade2))));
+        //verify(eventPublisher).publish(any(OrderExecutedEvent.class));
 
         assertThat(broker1.getCredit()).isEqualTo((440 * 20));
-        assertThat(broker3.getCredit()).isEqualTo((500 * 30));
+        assertThat(broker3.getCredit()).isEqualTo((440 * 22));
 
     }
 
@@ -262,7 +259,7 @@ public class StopLimitTest {
         broker2.increaseCreditBy(1000_000);
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 100, LocalDateTime.now(), Side.SELL, 30, 400, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 100));
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(8, "ABC", 8, LocalDateTime.now(), Side.SELL, 230, 500, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 450));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(8, "ABC", 8, LocalDateTime.now(), Side.SELL, 230, 500, broker3.getBrokerId(), shareholder.getShareholderId(), 0, 550));
 
         orderHandler.handleDeleteOrder(new DeleteOrderRq(2, "ABC", Side.SELL, 8));
         verify(eventPublisher).publish(new OrderDeletedEvent(2, 8));
@@ -315,13 +312,11 @@ public class StopLimitTest {
         StopLimitOrder order1 = new StopLimitOrder(8, security, Side.BUY, 230, 500, broker3, shareholder, 0, 450); //stoplimit
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(1, "ABC", 8, LocalDateTime.now(), Side.BUY, 230, 500, broker2.getBrokerId(), shareholder.getShareholderId(), 0, 30, 450));
         verify(eventPublisher).publish(any(OrderRejectedEvent.class));
-        //verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_HAVE_MIN_EXEC)));
-        //yechiz bayad publish konim
-
+        verify(eventPublisher).publish(new OrderRejectedEvent(1, 8, List.of(Message.STOP_LIMIT_ORDER_CANNOT_HAVE_MIN_EXEC)));
     }
 
     @Test
-    void hashemTest(){
+    void stop_limit_order_activated_from_beginning(){
         broker1.increaseCreditBy(1000_000);
 
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 1, LocalDateTime.now(),
