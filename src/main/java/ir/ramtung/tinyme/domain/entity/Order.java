@@ -136,5 +136,9 @@ public class Order {
         return isUpdated || (initialQuantity - quantity >= minimumExecutionQuantity);
     }
 
+    public int getWholeQuantity (){
+        return quantity;
+    }
+
     public boolean isYourMinExecQuantity(long reqMinExecQuantity){ return reqMinExecQuantity == minimumExecutionQuantity;}
 }
