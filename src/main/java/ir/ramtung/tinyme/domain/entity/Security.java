@@ -8,6 +8,7 @@ import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.request.OrderEntryType;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -15,23 +16,23 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Getter
-@Builder
+@SuperBuilder
 public class Security {
-    private String isin;
+    protected String isin;
     @Builder.Default
-    private int tickSize = 1;
+    protected int tickSize = 1;
     @Builder.Default
-    private int lotSize = 1;
+    protected int lotSize = 1;
     @Builder.Default
-    private OrderBook orderBook = new OrderBook();
+    protected OrderBook orderBook = new OrderBook();
     @Builder.Default
-    private long price = 0;
+    protected long price = 0;
     @Builder.Default
-    private StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
+    protected StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
     @Builder.Default
-    private LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
+    protected LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
 
-    private boolean doseShareholderHaveEnoughPositions (Order order ,EnterOrderRq enterOrderRq, Shareholder shareholder ){
+    protected boolean doseShareholderHaveEnoughPositions (Order order ,EnterOrderRq enterOrderRq, Shareholder shareholder ){
         int extraSharesNeeded ;
         if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
             extraSharesNeeded = enterOrderRq.getQuantity() ;
@@ -41,7 +42,7 @@ public class Security {
                 orderBook.totalSellQuantityByShareholder(shareholder) + extraSharesNeeded));
     }
 
-    private MatchResult handleOrderExecution (Order order ,Matcher matcher){
+    protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
         if(order instanceof StopLimitOrder)
             return handleStopLimitOrder((StopLimitOrder) order);
         else
@@ -55,7 +56,7 @@ public class Security {
         return handleOrderExecution(order ,matcher);
     }
 
-    private Order findOrder(DeleteOrderRq deleteOrderRq){
+    protected Order findOrder(DeleteOrderRq deleteOrderRq){
         Order order = orderBook.findByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
         if (order instanceof StopLimitOrder)
             order = ((StopLimitOrder) order).toOrder();
@@ -64,14 +65,14 @@ public class Security {
         return (order != null) ? order : (inactiveOrder != null) ? inactiveOrder : null ;
     }
 
-    private void removeOrder(Order order ,DeleteOrderRq deleteOrderRq){
+    protected void removeOrder(Order order ,DeleteOrderRq deleteOrderRq){
         if (order instanceof StopLimitOrder)
             stopLimitOrderBook.removeByOrderId(deleteOrderRq.getSide(),deleteOrderRq.getOrderId());
         else
             orderBook.removeByOrderId(deleteOrderRq.getSide(), deleteOrderRq.getOrderId());
     }
 
-    private void handleDeletedOrderCredit(Order order){
+    protected void handleDeletedOrderCredit(Order order){
         if (order.getSide() == Side.BUY){
             if (order instanceof StopLimitOrder)
                 order.getBroker().releaseReservedCredit(order.getValue());
@@ -90,7 +91,7 @@ public class Security {
         removeOrder(order ,deleteOrderRq);
     }
 
-    private MatchResult validateUpdateRequest(Order order , EnterOrderRq updateOrderRq )
+    protected MatchResult validateUpdateRequest(Order order , EnterOrderRq updateOrderRq )
     throws InvalidRequestException{
         if (order == null)
             throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
@@ -106,19 +107,19 @@ public class Security {
         return null ;
     }
 
-    private boolean doesItLosePriority (Order order ,EnterOrderRq updateOrderRq ){
+    protected boolean doesItLosePriority (Order order ,EnterOrderRq updateOrderRq ){
         return order.isQuantityIncreased(updateOrderRq.getQuantity()) || updateOrderRq.getPrice() != order.getPrice()
                 || ((order instanceof IcebergOrder icebergOrder) &&
                 (icebergOrder.getPeakSize() < updateOrderRq.getPeakSize()));
     }
 
-    private void updateActiveOrderCreditHandler(Order order ,EnterOrderRq updateOrderRq ){
+    protected void updateActiveOrderCreditHandler(Order order ,EnterOrderRq updateOrderRq ){
         if (updateOrderRq.getSide() == Side.BUY) {
             order.getBroker().increaseCreditBy(order.getValue());
         }
     }
 
-    private MatchResult handlePriorityLoss (Order order ,EnterOrderRq updateOrderRq ,boolean loosesPriority ){
+    protected MatchResult handlePriorityLoss (Order order ,EnterOrderRq updateOrderRq ,boolean loosesPriority ){
         if (!loosesPriority) {
             if (updateOrderRq.getSide() == Side.BUY) {
                 order.getBroker().decreaseCreditBy(order.getValue());
@@ -130,7 +131,7 @@ public class Security {
         return null ;
     }
 
-    private MatchResult handleUpdateOrderExecution (EnterOrderRq updateOrderRq ,Matcher matcher ,Order order ,
+    protected MatchResult handleUpdateOrderExecution (EnterOrderRq updateOrderRq ,Matcher matcher ,Order order ,
                                                     Order originalOrder){
         orderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
         MatchResult matchResult = matcher.execute(order);
@@ -143,7 +144,7 @@ public class Security {
         return matchResult ;
     }
 
-    private MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
+    protected MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
             throws  InvalidRequestException{
         Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
         MatchResult validationResult = validateUpdateRequest(order ,updateOrderRq );
@@ -164,7 +165,7 @@ public class Security {
         return handleUpdateOrderExecution(updateOrderRq ,matcher ,order ,originalOrder ) ;
     }
 
-    private MatchResult updateInActiveOrder(EnterOrderRq updateOrderRq) throws InvalidRequestException{
+    protected MatchResult updateInActiveOrder(EnterOrderRq updateOrderRq) throws InvalidRequestException{
         StopLimitOrder inactiveOrder = stopLimitOrderBook.findByOrderId(updateOrderRq.getSide(),
                 updateOrderRq.getOrderId());
         MatchResult validationResult = validateUpdateRequest(inactiveOrder ,updateOrderRq );
@@ -184,7 +185,7 @@ public class Security {
             return updateInActiveOrder(updateOrderRq );
     }
 
-    private Order createNewOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder){
+    protected Order createNewOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder){
         Order order;
         if (isStopLimitOrder(enterOrderRq))
             order = new StopLimitOrder(enterOrderRq.getOrderId(), this, enterOrderRq.getSide(),
@@ -202,15 +203,15 @@ public class Security {
         return order;
     }
 
-    private boolean isStopLimitOrder(EnterOrderRq enterOrderRq){
+    protected boolean isStopLimitOrder(EnterOrderRq enterOrderRq){
         return enterOrderRq.getPeakSize() == 0  && enterOrderRq.getStopPrice() > 0;
     }
 
-    private boolean isIceberg(EnterOrderRq enterOrderRq){
+    protected boolean isIceberg(EnterOrderRq enterOrderRq){
         return enterOrderRq.getPeakSize() != 0;
     }
 
-    private boolean isActive(Order order){
+    protected boolean isActive(Order order){
         if(!(order instanceof StopLimitOrder))
             return true;
         else if(((StopLimitOrder) order).isActivated(price))
@@ -219,7 +220,7 @@ public class Security {
             return false;
     }
 
-    private boolean canGetEnqueued(StopLimitOrder order){
+    protected boolean canGetEnqueued(StopLimitOrder order){
         if (order.getSide() == Side.BUY){
             if (order.getBroker().reserveCredit(order.getPrice() * order.getQuantity()))
                 return true;
@@ -229,7 +230,7 @@ public class Security {
         return true;
     }
 
-    private MatchResult handleStopLimitOrder(StopLimitOrder order) {
+    protected MatchResult handleStopLimitOrder(StopLimitOrder order) {
         if (canGetEnqueued(order)) {
             stopLimitOrderBook.enqueue(order);
             return MatchResult.stopLimitOrderQueued();
