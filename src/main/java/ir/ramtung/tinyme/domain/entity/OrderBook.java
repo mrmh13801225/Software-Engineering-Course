@@ -10,10 +10,12 @@ import java.util.ListIterator;
 public class OrderBook {
     private final LinkedList<Order> buyQueue;
     private final LinkedList<Order> sellQueue;
+    private int tradableQuantity ;
 
     public OrderBook() {
         buyQueue = new LinkedList<>();
         sellQueue = new LinkedList<>();
+        tradableQuantity = 0;
     }
 
     public void enqueue(Order order) {
@@ -91,7 +93,7 @@ public class OrderBook {
         }
     }
 
-    public long calculateOpeningPrice (long price){
+    public int calculateOpeningPrice (long price){
         return 0;
     }
 }

@@ -10,54 +10,76 @@ public final class MatchResult {
     private final MatchingOutcome outcome;
     private final Order remainder;
     private final LinkedList<Trade> trades;
+    private final int auctionPrice ;
+    private final int tradablePrice ;
     static final private String MATCH_RESULT_STRING = "MatchResult[";
     static final private String REMAINDER_STRING = "remainder=";
     static final private String TRADES_STRING = "trades=";
 
     public static MatchResult executed(Order remainder, List<Trade> trades) {
-        return new MatchResult(MatchingOutcome.EXECUTED, remainder, new LinkedList<>(trades));
+        return new MatchResult(MatchingOutcome.EXECUTED, remainder, new LinkedList<>(trades) , 0,
+                0);
     }
 
     public static MatchResult notEnoughCredit() {
-        return new MatchResult(MatchingOutcome.NOT_ENOUGH_CREDIT, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.NOT_ENOUGH_CREDIT, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult notEnoughPositions() {
-        return new MatchResult(MatchingOutcome.NOT_ENOUGH_POSITIONS, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.NOT_ENOUGH_POSITIONS, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult invalidMinExecQuantity() {
-        return new MatchResult(MatchingOutcome.INVALID_MIN_EXEC_QUANTITY, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.INVALID_MIN_EXEC_QUANTITY, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult minExecQuantityHaveNotMet(){
-        return new MatchResult(MatchingOutcome.MIN_EXEC_QUANTITY_HAVE_NOT_MET, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.MIN_EXEC_QUANTITY_HAVE_NOT_MET, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult changingMinExecQuantityWhileUpdating(){
         return new MatchResult(MatchingOutcome.CHANGING_MIN_EXEC_QUANTITY_IN_UPDATE_REQUEST, null,
-                new LinkedList<>());
+                new LinkedList<>(), 0, 0);
     }
     public static MatchResult stopLimitOrderQueued(){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_QUEUED, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_QUEUED, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult stopLimitOrderExecuted(){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_EXECUTED, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_EXECUTED, null, new LinkedList<>(), 0,
+                0);
     }
     public static MatchResult stopLimitOrderExecutedDirectly(Order remainder, List<Trade> trades){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_EXECUTED_DIRECTLY, remainder, new LinkedList<>(trades));
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_EXECUTED_DIRECTLY, remainder, new LinkedList<>(trades),
+                0, 0);
     }
     public static MatchResult invalidStopLimitOrder(){
-        return new MatchResult(MatchingOutcome.INVALID_STOP_LIMIT_ORDER, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.INVALID_STOP_LIMIT_ORDER, null, new LinkedList<>(), 0,
+                0);
     }
 
     public static MatchResult stopLimitOrderActivated(Order remainder){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_QUEUED, remainder, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_QUEUED, remainder, new LinkedList<>(), 0,
+                0);
     }
 
     public static MatchResult stopLimitOrderUpdated(){
-        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_UPDATED, null, new LinkedList<>());
+        return new MatchResult(MatchingOutcome.STOP_LIMIT_ORDER_UPDATED, null, new LinkedList<>(), 0,
+                0);
     }
-    private MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades) {
+
+    public static MatchResult orderAddedToAuction(int price, int tradablePrice){
+        return new MatchResult(MatchingOutcome.ORDER_ADDED_TO_AUCTION, null, new LinkedList<>(), price,
+                tradablePrice);
+    }
+
+    public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
+                       int tradablePrice) {
         this.outcome = outcome;
         this.remainder = remainder;
         this.trades = trades;
+        this.auctionPrice = auctionPrice;
+        this.tradablePrice = tradablePrice;
     }
 
     public MatchingOutcome outcome() {

@@ -10,8 +10,7 @@ public class AuctionSecurity extends Security{
     @Override
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
         orderBook.enqueue(order);
-        orderBook.calculateOpeningPrice(price);
-        return matcher.execute(order);
+        return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
 
 }

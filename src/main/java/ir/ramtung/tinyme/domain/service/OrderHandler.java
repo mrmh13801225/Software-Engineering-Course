@@ -140,6 +140,10 @@ public class OrderHandler {
     }
 
     private  void orderSituationPublisher(EnterOrderRq enterOrderRq, MatchResult matchResult){
+        //TODO:check if orderAccepted event will be published for auction orders or just a OpeningPriceEvent will be published.
+        if (matchResult.getOutcome() == MatchingOutcome.ORDER_ADDED_TO_AUCTION)
+            eventPublisher.publish(new OpeningPriceEvent(enterOrderRq.getSecurityIsin(), matchResult.getAuctionPrice(),
+                    matchResult.getTradablePrice()));
         if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
             eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
         else
