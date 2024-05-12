@@ -10,7 +10,7 @@ import java.util.ListIterator;
 @Service
 public class Matcher {
 
-    private MatchResult handleTrade(Order newOrder ,Order matchingOrder ,LinkedList<Trade> trades){
+    protected MatchResult handleTrade(Order newOrder ,Order matchingOrder ,LinkedList<Trade> trades){
 
         Trade trade = new Trade(newOrder.getSecurity(), matchingOrder.getPrice(), Math.min(newOrder.getQuantity(),
                 matchingOrder.getQuantity()), newOrder, matchingOrder);
@@ -30,14 +30,14 @@ public class Matcher {
         return null;
     }
 
-    private void handleIcebergMatchingOrder(IcebergOrder icebergOrder ,OrderBook orderBook){
+    protected void handleIcebergMatchingOrder(IcebergOrder icebergOrder ,OrderBook orderBook){
         icebergOrder.decreaseQuantity(icebergOrder.getQuantity());
         icebergOrder.replenish();
         if (icebergOrder.getQuantity() > 0)
             orderBook.enqueue(icebergOrder);
     }
 
-    private void handleNewOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+    protected void handleNewOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
         newOrder.decreaseQuantity(matchingOrder.getQuantity());
         orderBook.removeFirst(matchingOrder.getSide());
         if (matchingOrder instanceof IcebergOrder icebergOrder) {
@@ -45,19 +45,19 @@ public class Matcher {
         }
     }
 
-    private void handleMatchingOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+    protected void handleMatchingOrderHasRemainderSituation(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
         matchingOrder.decreaseQuantity(newOrder.getQuantity());
         newOrder.makeQuantityZero();
     }
 
-    private void handleTradeSidesRemainder(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
+    protected void handleTradeSidesRemainder(Order newOrder ,Order matchingOrder ,OrderBook orderBook ){
         if (newOrder.getQuantity() >= matchingOrder.getQuantity())
             handleNewOrderHasRemainderSituation(newOrder ,matchingOrder ,orderBook );
         else
             handleMatchingOrderHasRemainderSituation(newOrder ,matchingOrder ,orderBook );
     }
 
-    private MatchResult matchFirstMatchingOrder(Order newOrder ,OrderBook orderBook ,LinkedList<Trade> trades ,
+    protected MatchResult matchFirstMatchingOrder(Order newOrder ,OrderBook orderBook ,LinkedList<Trade> trades ,
                                                 Order matchingOrder){
         MatchResult tradeResult = handleTrade(newOrder ,matchingOrder ,trades );
         if (tradeResult != null)
@@ -87,7 +87,7 @@ public class Matcher {
         return MatchResult.executed(newOrder, trades);
     }
 
-    private void rollbackBuyOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
+    protected void rollbackBuyOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
         newOrder.getBroker().increaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
         trades.forEach(trade -> trade.getSell().getBroker().decreaseCreditBy(trade.getTradedValue()));
 
@@ -96,7 +96,7 @@ public class Matcher {
         }
     }
 
-    private void rollbackSellOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
+    protected void rollbackSellOrder(Order newOrder, LinkedList<Trade> trades, ListIterator<Trade> it){
         newOrder.getBroker().decreaseCreditBy(trades.stream().mapToLong(Trade::getTradedValue).sum());
 
         while (it.hasPrevious()) {
@@ -104,7 +104,7 @@ public class Matcher {
         }
 
     }
-    private void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {
+    protected void rollbackTrades(Order newOrder, LinkedList<Trade> trades) {
         ListIterator<Trade> it = trades.listIterator(trades.size());
         if (newOrder.getSide() == Side.BUY)
             rollbackBuyOrder(newOrder, trades, it);
@@ -112,7 +112,7 @@ public class Matcher {
             rollbackSellOrder(newOrder, trades, it);
     }
 
-    private MatchResult handleOrderRemainderCredit(MatchResult result ,Order order){
+    protected MatchResult handleOrderRemainderCredit(MatchResult result ,Order order){
         if (!order.getBroker().hasEnoughCredit(order.getValue())) {
             rollbackTrades(order, result.trades());
             return MatchResult.notEnoughCredit();
@@ -121,7 +121,7 @@ public class Matcher {
         return null;
     }
 
-    private MatchResult handleOrderRemainder(MatchResult result ,Order order){
+    protected MatchResult handleOrderRemainder(MatchResult result ,Order order){
         if (result.remainder().getQuantity() > 0) {
             if (order.getSide() == Side.BUY) {
                 MatchResult creditHandlingResult = handleOrderRemainderCredit(result ,order) ;
@@ -133,7 +133,7 @@ public class Matcher {
         return null;
     }
 
-    private void handleTradesPossitions(MatchResult result){
+    protected void handleTradesPossitions(MatchResult result){
         if (!result.trades().isEmpty()) {
             for (Trade trade : result.trades()) {
                 trade.getBuy().getShareholder().incPosition(trade.getSecurity(), trade.getQuantity());
@@ -142,7 +142,7 @@ public class Matcher {
         }
     }
 
-    private void updateSecurityPrice(MatchResult result){
+    protected void updateSecurityPrice(MatchResult result){
         if (!result.getTrades().isEmpty())
             result.remainder().getSecurity().updatePrice(result.getTrades().getLast().getPrice());
     }

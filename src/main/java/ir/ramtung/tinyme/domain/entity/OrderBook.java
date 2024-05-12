@@ -90,4 +90,8 @@ public class OrderBook {
             }
         }
     }
+
+    public long calculateOpeningPrice (long price){
+        return 0;
+    }
 }

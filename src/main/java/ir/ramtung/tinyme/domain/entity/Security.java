@@ -42,6 +42,14 @@ public class Security {
                 orderBook.totalSellQuantityByShareholder(shareholder) + extraSharesNeeded));
     }
 
+    protected MatchResult handleStopLimitOrder(StopLimitOrder order) {
+        if (canGetEnqueued(order)) {
+            stopLimitOrderBook.enqueue(order);
+            return MatchResult.stopLimitOrderQueued();
+        }
+        return MatchResult.notEnoughCredit();
+    }
+
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
         if(order instanceof StopLimitOrder)
             return handleStopLimitOrder((StopLimitOrder) order);
@@ -229,15 +237,6 @@ public class Security {
         }
         return true;
     }
-
-    protected MatchResult handleStopLimitOrder(StopLimitOrder order) {
-        if (canGetEnqueued(order)) {
-            stopLimitOrderBook.enqueue(order);
-            return MatchResult.stopLimitOrderQueued();
-        }
-        return MatchResult.notEnoughCredit();
-    }
-
 
     public ArrayList<MatchResult> handleActivation(){
         LinkedList<StopLimitOrder> newActivatedOrders = stopLimitOrderBook.popActivatedOrders(price);

@@ -8,10 +8,10 @@ import lombok.experimental.SuperBuilder;
 public class AuctionSecurity extends Security{
 
     @Override
-    public MatchResult newOrder(EnterOrderRq enterOrderRq, Broker broker, Shareholder shareholder, Matcher matcher) {
-        if (!doseShareholderHaveEnoughPositions(null ,enterOrderRq ,shareholder))
-            return MatchResult.notEnoughPositions();
-        Order order = createNewOrder(enterOrderRq, broker, shareholder);
-        return handleOrderExecution(order ,matcher);
+    protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
+        orderBook.enqueue(order);
+        orderBook.calculateOpeningPrice(price);
+        return matcher.execute(order);
     }
+
 }
