@@ -188,6 +188,7 @@ public class OrderHandler {
 
     public void handleEnterOrder(EnterOrderRq enterOrderRq) {
         try {
+            //TODO:validations must be updated
             validateEnterOrderRq(enterOrderRq);
 
             Security security = securityRepository.findSecurityByIsin(enterOrderRq.getSecurityIsin());
@@ -227,6 +228,7 @@ public class OrderHandler {
 
     private void publishSecurityChangingResult(ChangeSecurityResult changeSecurityResult,
                                                ChangeMatchingStateRq changeMatchingStateRq){
+        //TODO: must complete this section.
         eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
                 changeMatchingStateRq.getTargetState()));
     }
@@ -243,7 +245,7 @@ public class OrderHandler {
         Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
         ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
         handleSecurityReplacing(changeSecurityResult);
-        
+
         publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq);
     }
 
