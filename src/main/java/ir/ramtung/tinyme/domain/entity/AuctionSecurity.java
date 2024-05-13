@@ -11,6 +11,11 @@ import java.util.LinkedList;
 @SuperBuilder
 public class AuctionSecurity extends Security{
 
+    AuctionSecurity (Security security){
+        super(security.getIsin(), security.getTickSize(), security.getLotSize(), security.getOrderBook(),
+                security.getPrice(), security.getStopLimitOrderBook(), security.getActivatedStopOrder());
+    }
+
     @Override
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
         orderBook.enqueue(order);
@@ -25,6 +30,16 @@ public class AuctionSecurity extends Security{
     @Override
     public ArrayList<MatchResult> executeActivatedStopOrders(Matcher matcher){
         return new ArrayList<>();
+    }
+
+    @Override
+    protected ChangeSecurityResult changeToAuction(){
+        return ChangeSecurityResult.createVirtualAuctionSuccessFullChange(this);
+    }
+
+    @Override
+    protected ChangeSecurityResult changeToContinues(){
+        return ChangeSecurityResult.createRealSuccessFullChange(new Security(this));
     }
 
 }

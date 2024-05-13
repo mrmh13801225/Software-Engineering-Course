@@ -1,11 +1,10 @@
 package ir.ramtung.tinyme.domain.entity;
 
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
-import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
-import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.*;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.Message;
-import ir.ramtung.tinyme.messaging.request.OrderEntryType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
@@ -17,6 +16,7 @@ import java.util.List;
 
 @Getter
 @SuperBuilder
+@AllArgsConstructor
 public class Security {
     protected String isin;
     @Builder.Default
@@ -31,6 +31,12 @@ public class Security {
     protected StopLimitOrderBook stopLimitOrderBook = new StopLimitOrderBook();
     @Builder.Default
     protected LinkedList<StopLimitOrder> activatedStopOrder = new LinkedList<>();
+
+    Security (AuctionSecurity auctionSecurity){
+        this(auctionSecurity.getIsin(), auctionSecurity.getTickSize(), auctionSecurity.getLotSize(),
+                auctionSecurity.getOrderBook(), auctionSecurity.getPrice(), auctionSecurity.getStopLimitOrderBook(),
+                auctionSecurity.getActivatedStopOrder());
+    }
 
     protected boolean doseShareholderHaveEnoughPositions (Order order ,EnterOrderRq enterOrderRq, Shareholder shareholder ){
         int extraSharesNeeded ;
@@ -271,7 +277,20 @@ public class Security {
         return executedResults;
     }
 
+    protected ChangeSecurityResult changeToAuction(){
+        return ChangeSecurityResult.createRealSuccessFullChange(new AuctionSecurity(this));
+    }
 
+    protected ChangeSecurityResult changeToContinues(){
+        return ChangeSecurityResult.createRealSuccessFullChange(this);
+    }
+
+    public ChangeSecurityResult changeTo (ChangeMatchingStateRq changeMatchingStateRq){
+        if (changeMatchingStateRq.getTargetState() == MatchingState.AUCTION)
+            return changeToAuction();
+        else
+            return changeToContinues();
+    }
 
     public void updatePrice(long price){
         this.price = price;
