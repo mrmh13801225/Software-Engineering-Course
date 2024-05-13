@@ -4,6 +4,10 @@ import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
+
 @SuperBuilder
 public class AuctionSecurity extends Security{
 
@@ -11,6 +15,16 @@ public class AuctionSecurity extends Security{
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
         orderBook.enqueue(order);
         return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
+    }
+
+    @Override
+    public ArrayList<MatchResult> handleActivation() {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public ArrayList<MatchResult> executeActivatedStopOrders(Matcher matcher){
+        return new ArrayList<>();
     }
 
 }
