@@ -51,7 +51,7 @@ public class AuctionSecurity extends Security{
         ArrayList<MatchResult> results = new ArrayList<>();
         Order buy = orderBook.getFirstBuy();
         while (buy != null) {
-            results.add(matcher.execute(buy));
+            results.add(matcher.execute(buy, orderBook.getOpeningPrice()));
             buy = orderBook.getFirstBuy();
         }
 
