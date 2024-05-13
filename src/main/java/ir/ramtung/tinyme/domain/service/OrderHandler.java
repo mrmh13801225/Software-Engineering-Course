@@ -225,10 +225,23 @@ public class OrderHandler {
         }
     }
 
+    private void publishSecurityChangingResult(ChangeSecurityResult changeSecurityResult,
+                                               ChangeMatchingStateRq changeMatchingStateRq){
+        eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
+                changeMatchingStateRq.getTargetState()));
+    }
+
     public void handleChangeMatchingState(ChangeMatchingStateRq changeMatchingStateRq){
         //TODO:may need validations .
         Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
-        security.
+        ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
+
+        if (changeSecurityResult.getChangingResult() == SecurityChangingResult.FAILED)
+            return;
+
+        securityRepository.replace(changeSecurityResult.getSecurity());
+
+        publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq);
     }
 
 }
