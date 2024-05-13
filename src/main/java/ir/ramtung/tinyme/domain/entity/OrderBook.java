@@ -12,11 +12,18 @@ public class OrderBook {
     private final LinkedList<Order> buyQueue;
     private final LinkedList<Order> sellQueue;
     private int tradableQuantity ;
+    private int openingPrice ;
 
     public OrderBook() {
         buyQueue = new LinkedList<>();
         sellQueue = new LinkedList<>();
         tradableQuantity = 0;
+    }
+
+    public Order getFirstBuy (){
+        if (buyQueue.getFirst().canGetExecuted(openingPrice))
+            return buyQueue.pop();
+        return null;
     }
 
     public void enqueue(Order order) {
@@ -161,8 +168,8 @@ public class OrderBook {
 
         Pair<Integer, Integer> lowerBoundResult = calculateLowerBound(price);
         tradableQuantity = lowerBoundResult.getRight();
-
-        return calculateExactOpeningPrice((int) price, lowerBoundResult.getLeft());
+        openingPrice = calculateExactOpeningPrice((int) price, lowerBoundResult.getLeft());
+        return openingPrice;
     }
 
 }

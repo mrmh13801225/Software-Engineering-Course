@@ -231,16 +231,19 @@ public class OrderHandler {
                 changeMatchingStateRq.getTargetState()));
     }
 
-    public void handleChangeMatchingState(ChangeMatchingStateRq changeMatchingStateRq){
-        //TODO:may need validations .
-        Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
-        ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
-
+    private void handleSecurityReplacing (ChangeSecurityResult changeSecurityResult){
         if (changeSecurityResult.getChangingResult() == SecurityChangingResult.FAILED)
             return;
 
         securityRepository.replace(changeSecurityResult.getSecurity());
+    }
 
+    public void handleChangeMatchingState(ChangeMatchingStateRq changeMatchingStateRq){
+        //TODO:may need validations .
+        Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
+        ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
+        handleSecurityReplacing(changeSecurityResult);
+        
         publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq);
     }
 

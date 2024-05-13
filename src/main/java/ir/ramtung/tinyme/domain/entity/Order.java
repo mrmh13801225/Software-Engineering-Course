@@ -140,5 +140,12 @@ public class Order {
         return quantity;
     }
 
+    public boolean canGetExecuted(int otherPrice){
+        if (side == Side.BUY)
+            return price >= otherPrice;
+        else
+            return price <= otherPrice;
+    }
+
     public boolean isYourMinExecQuantity(long reqMinExecQuantity){ return reqMinExecQuantity == minimumExecutionQuantity;}
 }

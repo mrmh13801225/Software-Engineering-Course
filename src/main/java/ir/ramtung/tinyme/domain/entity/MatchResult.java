@@ -73,6 +73,10 @@ public final class MatchResult {
                 tradablePrice);
     }
 
+    public static MatchResult auctionOpened (int price, int tradablePrice){
+        return new MatchResult(MatchingOutcome.OPENED, null, new LinkedList<>(), price, tradablePrice);
+    }
+
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
                        int tradablePrice) {
         this.outcome = outcome;

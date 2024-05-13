@@ -1,5 +1,6 @@
 package ir.ramtung.tinyme.domain.entity;
 
+import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.Matcher;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import lombok.experimental.SuperBuilder;
@@ -18,6 +19,10 @@ public class AuctionSecurity extends Security{
 
     @Override
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
+        if (!order.getBroker().hasEnoughCredit(order.getValue())) {
+            return MatchResult.notEnoughCredit();
+        }
+        order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
         return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
@@ -40,6 +45,24 @@ public class AuctionSecurity extends Security{
     @Override
     protected ChangeSecurityResult changeToContinues(){
         return ChangeSecurityResult.createRealSuccessFullChange(new Security(this));
+    }
+
+    public ArrayList<MatchResult> matchTradableOrders(AuctionMatcher matcher){
+        ArrayList<MatchResult> results = new ArrayList<>();
+        Order buy = orderBook.getFirstBuy();
+        while (buy != null) {
+            results.add(matcher.execute(buy));
+            buy = orderBook.getFirstBuy();
+        }
+
+        return results;
+    }
+
+    public ArrayList<MatchResult> Open (AuctionMatcher matcher){
+        ArrayList<MatchResult> results = new ArrayList<>();
+        results.add(MatchResult.auctionOpened(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity()));
+        results.addAll(matchTradableOrders(matcher));
+        return results;
     }
 
 }
