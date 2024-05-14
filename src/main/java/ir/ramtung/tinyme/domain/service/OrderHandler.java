@@ -240,11 +240,24 @@ public class OrderHandler {
         securityRepository.replace(changeSecurityResult.getSecurity());
     }
 
+    private ArrayList<MatchResult> handleOpening (ChangeSecurityResult changeSecurityResult){
+        ArrayList<MatchResult> results = new ArrayList<>();
+        if (changeSecurityResult.getChangingResult() == SecurityChangingResult.VIRTUAL){
+            Security security = securityRepository.findSecurityByIsin(changeSecurityResult.getSecurity().getIsin());
+            if (security instanceof AuctionSecurity auctionSecurity)  //TODO :add AuctionMatcher to class fields.
+                results.addAll(auctionSecurity.open(new AuctionMatcher()));
+            return results;
+        }
+        else
+            return results;
+    }
+
     public void handleChangeMatchingState(ChangeMatchingStateRq changeMatchingStateRq){
         //TODO:may need validations .
         Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
         ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
         handleSecurityReplacing(changeSecurityResult);
+        ArrayList<MatchResult> openingResult = handleOpening(changeSecurityResult);
 
         publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq);
     }
