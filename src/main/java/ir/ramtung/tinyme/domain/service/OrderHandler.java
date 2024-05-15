@@ -137,6 +137,11 @@ public class OrderHandler {
                     List.of(Message.CANNOT_CHANGE_MIN_EXEC_QUANTITY_WHILE_UPDATING_REQUEST)));
             return true;
         }
+        else if (matchResult.outcome() == MatchingOutcome.CANNOT_CHANGE_STOP_LIMIT_ORDER_FOR_AUCTION_SECURITY) {
+            eventPublisher.publish(new OrderRejectedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(),
+                    List.of(Message.CANNOT_CHANGE_STOP_LIMIT_ORDER_FOR_AUCTION_SECURITY)));
+            return true;
+        }
         return false;
     }
 

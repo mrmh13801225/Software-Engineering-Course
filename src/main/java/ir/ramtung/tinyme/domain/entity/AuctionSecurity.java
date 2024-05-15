@@ -2,6 +2,7 @@ package ir.ramtung.tinyme.domain.entity;
 
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.Matcher;
+import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import lombok.experimental.SuperBuilder;
 
@@ -46,6 +47,14 @@ public class AuctionSecurity extends Security{
     @Override
     protected ChangeSecurityResult changeToContinues(){
         return ChangeSecurityResult.createVirtualAuctionSuccessFullChange(new Security(this));
+    }
+
+    @Override
+    public MatchResult updateOrder(EnterOrderRq updateOrderRq, Matcher matcher) throws InvalidRequestException {
+        if (updateOrderRq.getStopPrice() == 0)
+            return updateActiveOrder(updateOrderRq ,matcher );
+        else
+            return MatchResult.updateAuctionStopLimitError();
     }
 
     public ArrayList<MatchResult> matchTradableOrders(AuctionMatcher matcher){

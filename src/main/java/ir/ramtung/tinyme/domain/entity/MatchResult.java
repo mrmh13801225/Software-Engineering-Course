@@ -77,6 +77,11 @@ public final class MatchResult {
         return new MatchResult(MatchingOutcome.OPENED, null, new LinkedList<>(), price, tradablePrice);
     }
 
+    public static MatchResult updateAuctionStopLimitError() {
+        return new MatchResult(MatchingOutcome.CANNOT_CHANGE_STOP_LIMIT_ORDER_FOR_AUCTION_SECURITY, null,
+                                                                new LinkedList<>(), 0, 0);
+    }
+
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
                        int tradablePrice) {
         this.outcome = outcome;
