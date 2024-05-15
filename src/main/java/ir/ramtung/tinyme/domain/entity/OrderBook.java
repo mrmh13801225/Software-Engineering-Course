@@ -1,5 +1,6 @@
 package ir.ramtung.tinyme.domain.entity;
 
+import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -101,61 +102,69 @@ public class OrderBook {
         }
     }
 
-    protected int calculateBuyTradableQuantity (Order order){
-        int buyTradableQuantity = 0;
-        for (int i = 0; i < buyQueue.size() ; i++ ){
-            if (order.matches(buyQueue.get(i)))
-                buyTradableQuantity += buyQueue.get(i).getWholeQuantity();
+    protected int calculateOppositeSideTradableQuantity(Order order){
+
+        LinkedList<Order> oppositeQueue = getQueue(order.side.opposite());
+
+        int tradableQuantity = 0;
+        for (int i = 0; i < oppositeQueue.size() ; i++ ){
+            if (order.matches(oppositeQueue.get(i)))
+                tradableQuantity += oppositeQueue.get(i).getWholeQuantity();
             else
                 break;
         }
-        return buyTradableQuantity;
+        return tradableQuantity;
     }
 
     protected boolean isLowerPriceCloser (int lowerPrice, int higherPrice, int targetPrice){
         return Math.abs(targetPrice - lowerPrice) <= Math.abs(higherPrice - targetPrice) ;
     }
 
-    protected Pair<Integer, Integer> calculateLowerBound (long price){
-        int currentSellTradableQuantity = 0;
+    protected Pair<Integer, Integer> findOptimalOpeningPriceBySide (Side side){
+        int currentTradableQuantity = 0;
         int bestTradableQuantity = 0 ;
         int bestprice = 0;
-        //TODO:az kam be ziad
-        for (int currentIndex = 0; currentIndex < sellQueue.size() ; currentIndex++ ){
-            Order sell = sellQueue.get(currentIndex);
-            currentSellTradableQuantity += sell.getWholeQuantity();
-            int tempTradableQuantity = Math.min(calculateBuyTradableQuantity(sell) , currentSellTradableQuantity);
+
+        LinkedList<Order> queue = getQueue(side);
+
+        for (int currentIndex = 0; currentIndex < queue.size() ; currentIndex++ ){
+            Order order = queue.get(currentIndex);
+            currentTradableQuantity += order.getWholeQuantity();
+            int tempTradableQuantity = Math.min(calculateOppositeSideTradableQuantity(order) , currentTradableQuantity);
             if (tempTradableQuantity < bestTradableQuantity)
                 break;
-            else if (tempTradableQuantity == bestTradableQuantity){
-                if (isLowerPriceCloser(sell.getPrice(), bestprice, (int) price))
-                    bestprice = sell.getPrice();
-                else
-                    break;
+            else if(tempTradableQuantity > bestTradableQuantity) {
+                bestprice = order.getPrice();
+                bestTradableQuantity = tempTradableQuantity;
+
             }
-            else {//TODO:should be lower than next sell.
-                bestprice = sell.getPrice();
-                bestTradableQuantity = tempTradableQuantity ;
-            }
+//            else if (tempTradableQuantity == bestTradableQuantity){
+//                if (isLowerPriceCloser(order.getPrice(), bestprice, (int) price))
+//                    bestprice = order.getPrice();
+//                else
+//                    break;
+//            }
+//            else {//TODO:should be lower than next sell.
+//                bestprice = order.getPrice();
+//                bestTradableQuantity = tempTradableQuantity ;
+//            }
         }
         return Pair.of(bestprice, bestTradableQuantity);
     }
 
-    protected int findFirstHigherBuyPrice(int lowerBound){
-        int bestPrice = Integer.MAX_VALUE;
-        for (int i = buyQueue.size()-1 ; i >= 0 ; i--){
-            Order buy = buyQueue.get(i);
-            if (buy.getPrice() >= lowerBound)
-                bestPrice = buy.getPrice();
-            else
-                break;
-        }
-        return bestPrice;
-    }
+//    protected int findFirstHigherBuyPrice(int lowerBound){
+//        int bestPrice = Integer.MAX_VALUE;
+//        for (int i = buyQueue.size()-1 ; i >= 0 ; i--){
+//            Order buy = buyQueue.get(i);
+//            if (buy.getPrice() >= lowerBound)
+//                bestPrice = buy.getPrice();
+//            else
+//                break;
+//        }
+//        return bestPrice;
+//    }
 
-    protected int calculateExactOpeningPrice (int price, int lowerBound){
-
-        int upperBound = findFirstHigherBuyPrice(lowerBound);
+    protected int calculateExactOpeningPrice (int price, int lowerBound, int upperBound){
 
         if (price >= upperBound)
             return upperBound;
@@ -165,11 +174,20 @@ public class OrderBook {
             return price;
     }
 
-    public int calculateOpeningPrice (long price){
+    public int calculateOpeningPrice (long price) throws InvalidRequestException {
+        //<price, tradeable quantity>
+        Pair<Integer, Integer> upperBoundResult = findOptimalOpeningPriceBySide(Side.BUY);
+        Pair<Integer, Integer> lowerBoundResult = findOptimalOpeningPriceBySide(Side.SELL);
 
-        Pair<Integer, Integer> lowerBoundResult = calculateLowerBound(price);
+        if(!upperBoundResult.getRight().equals(lowerBoundResult.getRight())) {
+            throw new InvalidRequestException("Not Equal Bounds");
+        }
+
+        int upperBoundPrice = upperBoundResult.getLeft();
+        int lowerBoundPrice = lowerBoundResult.getLeft();
+
         tradableQuantity = lowerBoundResult.getRight();
-        openingPrice = calculateExactOpeningPrice((int) price, lowerBoundResult.getLeft());
+        openingPrice = calculateExactOpeningPrice((int) price, lowerBoundPrice, upperBoundPrice);
         return openingPrice;
     }
 
