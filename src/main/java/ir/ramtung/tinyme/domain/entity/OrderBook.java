@@ -120,7 +120,8 @@ public class OrderBook {
         int currentSellTradableQuantity = 0;
         int bestTradableQuantity = 0 ;
         int bestprice = 0;
-        for (int currentIndex = sellQueue.size() - 1; currentIndex >= 0 ; currentIndex-- ){
+        //TODO:az kam be ziad
+        for (int currentIndex = 0; currentIndex < sellQueue.size() ; currentIndex++ ){
             Order sell = sellQueue.get(currentIndex);
             currentSellTradableQuantity += sell.getWholeQuantity();
             int tempTradableQuantity = Math.min(calculateBuyTradableQuantity(sell) , currentSellTradableQuantity);
@@ -132,7 +133,7 @@ public class OrderBook {
                 else
                     break;
             }
-            else {
+            else {//TODO:should be lower than next sell.
                 bestprice = sell.getPrice();
                 bestTradableQuantity = tempTradableQuantity ;
             }

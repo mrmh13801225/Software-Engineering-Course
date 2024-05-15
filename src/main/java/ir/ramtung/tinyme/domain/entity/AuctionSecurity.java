@@ -24,6 +24,7 @@ public class AuctionSecurity extends Security{
         }
         order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
+        //TODO:maybe need to add order.queued;
         return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
 
@@ -44,7 +45,7 @@ public class AuctionSecurity extends Security{
 
     @Override
     protected ChangeSecurityResult changeToContinues(){
-        return ChangeSecurityResult.createRealSuccessFullChange(new Security(this));
+        return ChangeSecurityResult.createVirtualAuctionSuccessFullChange(new Security(this));
     }
 
     public ArrayList<MatchResult> matchTradableOrders(AuctionMatcher matcher){

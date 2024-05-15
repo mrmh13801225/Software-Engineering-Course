@@ -7,7 +7,7 @@ import java.util.LinkedList;
 public class AuctionMatcher extends Matcher {
 
     private void payDebtToBroker (Order newOrder, Trade trade, int price){
-        int priceDifference = price - newOrder.getPrice();
+        int priceDifference =newOrder.getPrice() - price;
         int debtToBroker = priceDifference * trade.getQuantity();
         newOrder.getBroker().increaseCreditBy(debtToBroker);
     }
