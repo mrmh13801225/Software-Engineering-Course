@@ -96,7 +96,7 @@ public class OrderHandler {
         return errors ;
     }
 
-    private void validateEnterOrderRq(EnterOrderRq enterOrderRq) throws InvalidRequestException {
+    private void    validateEnterOrderRq(EnterOrderRq enterOrderRq) throws InvalidRequestException {
         List<String> errors = new LinkedList<>();
 
         errors.addAll(stopLimitRequestErrors(enterOrderRq));
@@ -149,7 +149,7 @@ public class OrderHandler {
         //TODO:check if orderAccepted event will be published for auction orders or just a OpeningPriceEvent will be published.
         if (matchResult.getOutcome() == MatchingOutcome.ORDER_ADDED_TO_AUCTION)
             eventPublisher.publish(new OpeningPriceEvent(enterOrderRq.getSecurityIsin(), matchResult.getAuctionPrice(),
-                    matchResult.getTradablePrice()));
+                    matchResult.getTradableQuantity()));
         if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
             eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
         else
@@ -224,8 +224,15 @@ public class OrderHandler {
         try {
             validateDeleteOrderRq(deleteOrderRq);
             Security security = securityRepository.findSecurityByIsin(deleteOrderRq.getSecurityIsin());
-            security.deleteOrder(deleteOrderRq);
-            eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
+            if (security instanceof AuctionSecurity auctionSecurity) {
+                MatchResult deleteResult = auctionSecurity.deleteAuctionOrder(deleteOrderRq);
+                eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
+                eventPublisher.publish(new OpeningPriceEvent(security.getIsin(), deleteResult.getAuctionPrice(), deleteResult.getTradableQuantity()));
+            }
+            else {
+                security.deleteOrder(deleteOrderRq);
+                eventPublisher.publish(new OrderDeletedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId()));
+            }
         } catch (InvalidRequestException ex) {
             eventPublisher.publish(new OrderRejectedEvent(deleteOrderRq.getRequestId(), deleteOrderRq.getOrderId(), ex.getReasons()));
         }

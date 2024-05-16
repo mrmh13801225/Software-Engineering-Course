@@ -2,7 +2,9 @@ package ir.ramtung.tinyme.domain.entity;
 
 import ir.ramtung.tinyme.domain.service.AuctionMatcher;
 import ir.ramtung.tinyme.domain.service.Matcher;
+import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
+import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import lombok.experimental.SuperBuilder;
 
@@ -95,6 +97,22 @@ public class AuctionSecurity extends Security{
         }
         return null ;
     }
+
+    public MatchResult deleteAuctionOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
+        Order order = findOrder(deleteOrderRq);
+
+        if (order == null)
+            throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
+        else if (order instanceof StopLimitOrder) {
+            throw new InvalidRequestException(Message.CANNOT_DELETE_STOP_LIMIT_ORDER_IN_AUCTION);
+        }
+
+        handleDeletedOrderCredit(order);
+        removeOrder(order ,deleteOrderRq);
+
+        return MatchResult.changeAuctionOrderBook(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
+    }
+
 
     public ArrayList<MatchResult> matchTradableOrders(AuctionMatcher matcher){
         ArrayList<MatchResult> results = new ArrayList<>();

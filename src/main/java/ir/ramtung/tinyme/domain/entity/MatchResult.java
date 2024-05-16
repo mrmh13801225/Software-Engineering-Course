@@ -11,7 +11,7 @@ public final class MatchResult {
     private final Order remainder;
     private final LinkedList<Trade> trades;
     private final int auctionPrice ;
-    private final int tradablePrice ;
+    private final int tradableQuantity;
     static final private String MATCH_RESULT_STRING = "MatchResult[";
     static final private String REMAINDER_STRING = "remainder=";
     static final private String TRADES_STRING = "trades=";
@@ -94,12 +94,12 @@ public final class MatchResult {
     }
 
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
-                       int tradablePrice) {
+                       int tradableQuantity) {
         this.outcome = outcome;
         this.remainder = remainder;
         this.trades = trades;
         this.auctionPrice = auctionPrice;
-        this.tradablePrice = tradablePrice;
+        this.tradableQuantity = tradableQuantity;
     }
 
     public MatchingOutcome outcome() {
