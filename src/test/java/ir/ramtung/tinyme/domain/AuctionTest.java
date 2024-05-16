@@ -94,7 +94,6 @@ public class AuctionTest {
         verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 300));
         verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
         verify(eventPublisher).publish(any(TradeEvent.class));
-
     }
 
     @Test

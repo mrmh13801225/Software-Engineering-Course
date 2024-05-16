@@ -263,11 +263,16 @@ public class OrderHandler {
         }
     }
 
-    private void handleSecurityReplacing (ChangeSecurityResult changeSecurityResult){
+    private ArrayList<MatchResult> handleSecurityReplacing (ChangeSecurityResult changeSecurityResult){
         if (changeSecurityResult.getChangingResult() == SecurityChangingResult.FAILED)
-            return;
-
+            return new ArrayList<>();
+        ArrayList<MatchResult> temp = new ArrayList<>();
         securityRepository.replace(changeSecurityResult.getSecurity());
+        if(!(changeSecurityResult.getSecurity() instanceof AuctionSecurity)){
+            temp.addAll(changeSecurityResult.getSecurity().handleActivation());
+            temp.addAll(changeSecurityResult.getSecurity().executeActivatedStopOrders(matcher));
+        }
+        return temp;
     }
 
     private ArrayList<MatchResult> handleOpening (ChangeSecurityResult changeSecurityResult){

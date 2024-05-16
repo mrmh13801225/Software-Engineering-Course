@@ -125,6 +125,7 @@ public class AuctionSecurity extends Security{
     public ArrayList<MatchResult> open (AuctionMatcher matcher){
         ArrayList<MatchResult> results = new ArrayList<>();
         results.addAll(matchTradableOrders(matcher));
+        price = orderBook.getOpeningPrice();
         return results;
     }
 

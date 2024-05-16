@@ -562,6 +562,20 @@ public class OrderHandlerTest {
 
 }
 
+//@Test
+//void stop_limit_order_activates_after_reopening_from_auction_to_continuous(){
+//    initialize_orders_for_auction_matcher();
+//    security.setLastTradePrice(5);
+//    orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 5, LocalDateTime.now(), Side.BUY, 100, 30, 1, shareholder.getShareholderId(), 0, 0, 10));
+//    security.setMatchingState(MatchingState.AUCTION);
+//    orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(1, "ABC", MatchingState.CONTINUOUS));
+//    verify(eventPublisher).publish(new OrderActivatedEvent(1, 5));
+//    verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
+//    verify(eventPublisher).publish(new OrderExecutedEvent(1, 5, List.of(new TradeDTO(new Trade(security, 25, 5, security.getOrderBook().findByOrderId(Side.BUY, 5), orders.get(5))))));
+//    assertThat(security.getOrderBook().findByOrderId(Side.BUY, 5)).isNotNull();
+//}
+
+
 
 
 
