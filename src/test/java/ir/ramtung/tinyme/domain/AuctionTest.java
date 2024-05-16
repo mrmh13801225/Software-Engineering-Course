@@ -10,6 +10,7 @@ import ir.ramtung.tinyme.messaging.event.*;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
+import ir.ramtung.tinyme.messaging.request.MatchingState;
 import ir.ramtung.tinyme.repository.BrokerRepository;
 import ir.ramtung.tinyme.repository.SecurityRepository;
 import ir.ramtung.tinyme.repository.ShareholderRepository;
@@ -48,6 +49,7 @@ public class AuctionTest {
     private Broker broker1;
     private Broker broker2;
     private Broker broker3;
+    private AuctionSecurity auctionSecurity;
 
     @BeforeEach
     void setup() {
@@ -56,6 +58,7 @@ public class AuctionTest {
         shareholderRepository.clear();
 
         security = Security.builder().isin("ABC").build();
+        this.auctionSecurity = AuctionSecurity.builder().isin("CBA").build();
         securityRepository.addSecurity(security);
 
         shareholder = Shareholder.builder().build();
@@ -74,8 +77,12 @@ public class AuctionTest {
     void accept_convert_auction_to_continuous() {
 
 //        Order order1 = new Order(8, security, Side.BUY, 230, 500, broker2, shareholder, 0);
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "ABC", 200, LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(), 0));
-        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq());
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "CBA", MatchingState.CONTINUOUS));
+
+        verify(eventPublisher).publish();
 
     }
 
