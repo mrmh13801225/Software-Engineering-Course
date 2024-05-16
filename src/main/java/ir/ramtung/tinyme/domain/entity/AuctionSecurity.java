@@ -24,6 +24,10 @@ public class AuctionSecurity extends Security{
         if (!order.getBroker().hasEnoughCredit(order.getValue())) {
             return MatchResult.notEnoughCredit();
         }
+
+        if (!order.isYourMinExecQuantity(0)) {
+            return MatchResult.addMinExecToAuction();
+        }
         order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
         order.queue();
@@ -57,30 +61,6 @@ public class AuctionSecurity extends Security{
             return updateActiveOrder(updateOrderRq ,matcher );
         else
             return MatchResult.updateAuctionStopLimitError();
-    }
-
-
-    //////////////////check !
-    @Override
-    protected MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
-            throws  InvalidRequestException{
-        Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
-        MatchResult validationResult = validateUpdateRequest(order ,updateOrderRq );
-        if(validationResult != null)
-            return validationResult;
-
-        boolean loosesPriority = doesItLosePriority(order ,updateOrderRq );
-
-        updateActiveOrderCreditHandler(order ,updateOrderRq );
-        Order originalOrder = order.snapshot();
-        order.updateFromRequest(updateOrderRq);
-
-        MatchResult priorityLossResult = handlePriorityLoss(order ,updateOrderRq ,loosesPriority );
-        if (priorityLossResult != null)
-            return priorityLossResult;
-
-
-        return handleUpdateOrderExecution(updateOrderRq ,matcher ,order ,originalOrder ) ;
     }
 
     @Override

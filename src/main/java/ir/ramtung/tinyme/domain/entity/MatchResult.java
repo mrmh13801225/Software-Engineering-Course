@@ -82,6 +82,12 @@ public final class MatchResult {
                                                                 new LinkedList<>(), 0, 0);
     }
 
+    public static MatchResult addMinExecToAuction() {
+
+        return new MatchResult(MatchingOutcome.CANNOT_ADD_MIN_EXEC_QUANTITY_TO_AUCTION_ORDER, null,
+                new LinkedList<>(), 0, 0);
+    }
+
     public static MatchResult changeAuctionOrderBook(int openingPrice, int quantity) {
         return new MatchResult(MatchingOutcome.AUCTION_ORDER_BOOK_CHANGED, null,
                 new LinkedList<>(), 0, 0);
