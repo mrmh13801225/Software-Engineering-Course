@@ -254,10 +254,11 @@ public class OrderHandler {
 
         eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
                 changeMatchingStateRq.getTargetState()));
-
-        for (MatchResult auctionOpeningMatchResult : auctionOpeningMatchResults) {
-            for (Trade trade : auctionOpeningMatchResult.getTrades()) {
-                eventPublisher.publish(new TradeEvent(trade.getSecurity().getIsin(), trade.getPrice(), trade.getQuantity(), trade.getBuy().getOrderId(), trade.getSell().getOrderId()));
+        if(changeSecurityResult.getChangingResult() == SecurityChangingResult.VIRTUAL) {
+            for (MatchResult auctionOpeningMatchResult : auctionOpeningMatchResults) {
+                for (Trade trade : auctionOpeningMatchResult.getTrades()) {
+                    eventPublisher.publish(new TradeEvent(trade.getSecurity().getIsin(), trade.getPrice(), trade.getQuantity(), trade.getBuy().getOrderId(), trade.getSell().getOrderId()));
+                }
             }
         }
     }
@@ -290,8 +291,8 @@ public class OrderHandler {
             return;
         }
         ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
-        handleSecurityReplacing(changeSecurityResult);
         ArrayList<MatchResult> openingResult = handleOpening(changeSecurityResult);
+        handleSecurityReplacing(changeSecurityResult);
 
         publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq, openingResult);
     }

@@ -22,7 +22,7 @@ public class OrderBook {
     }
 
     public Order getFirstBuy (){
-        if (buyQueue.getFirst().canGetExecuted(openingPrice))
+        if (!buyQueue.isEmpty() && buyQueue.getFirst().canGetExecuted(openingPrice))
             return buyQueue.pop();
         return null;
     }
@@ -184,6 +184,10 @@ public class OrderBook {
 
         tradableQuantity = lowerBoundResult.getRight();
         openingPrice = calculateExactOpeningPrice((int) price, lowerBoundPrice, upperBoundPrice);
+
+        if(tradableQuantity == 0)
+            openingPrice = (int)price;
+
         return openingPrice;
     }
 

@@ -23,11 +23,11 @@ public class AuctionSecurity extends Security{
 
     @Override
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
-        if (!order.getBroker().hasEnoughCredit(order.getValue())) {
-            return MatchResult.notEnoughCredit();
+        if (order.getSide() == Side.BUY) {
+            if(!order.getBroker().hasEnoughCredit(order.getValue()))
+                return MatchResult.notEnoughCredit();
+            order.getBroker().decreaseCreditBy(order.getValue());
         }
-
-        order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
         order.queue();
         //TODO:maybe need to add order.queued;
