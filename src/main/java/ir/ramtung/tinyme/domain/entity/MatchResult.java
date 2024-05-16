@@ -90,7 +90,7 @@ public final class MatchResult {
 
     public static MatchResult changeAuctionOrderBook(int openingPrice, int quantity) {
         return new MatchResult(MatchingOutcome.AUCTION_ORDER_BOOK_CHANGED, null,
-                new LinkedList<>(), 0, 0);
+                new LinkedList<>(), openingPrice, quantity);
     }
 
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,

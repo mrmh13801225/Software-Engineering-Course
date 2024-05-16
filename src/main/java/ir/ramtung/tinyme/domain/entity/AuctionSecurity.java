@@ -27,9 +27,6 @@ public class AuctionSecurity extends Security{
             return MatchResult.notEnoughCredit();
         }
 
-        if (!order.isYourMinExecQuantity(0)) {
-            return MatchResult.addMinExecToAuction();
-        }
         order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
         order.queue();

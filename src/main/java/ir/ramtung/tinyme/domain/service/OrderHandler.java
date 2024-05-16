@@ -95,6 +95,9 @@ public class OrderHandler {
         if ((security instanceof AuctionSecurity) && (enterOrderRq.getMinimumExecutionQuantity() != 0)) {
             errors.add(Message.AUCTION_ORDER_CANNOT_HAVE_MIN_EXEC_QUANTITY);
         }
+        if ((security instanceof AuctionSecurity) && (enterOrderRq.getStopPrice() != 0)) {
+            errors.add(Message.CANNOT_HAVE_STOP_LIMIT_ORDER_IN_AUCTION_SECURITY);
+        }
 
         return errors ;
     }
@@ -150,9 +153,6 @@ public class OrderHandler {
 
     private  void orderSituationPublisher(EnterOrderRq enterOrderRq, MatchResult matchResult){
         //TODO:check if orderAccepted event will be published for auction orders or just a OpeningPriceEvent will be published.
-        if (matchResult.getOutcome() == MatchingOutcome.ORDER_ADDED_TO_AUCTION)
-            eventPublisher.publish(new OpeningPriceEvent(enterOrderRq.getSecurityIsin(), matchResult.getAuctionPrice(),
-                    matchResult.getTradableQuantity()));
         if (enterOrderRq.getRequestType() == OrderEntryType.NEW_ORDER)
             eventPublisher.publish(new OrderAcceptedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId()));
         else
@@ -160,6 +160,14 @@ public class OrderHandler {
         if (!matchResult.trades().isEmpty()) {
             eventPublisher.publish(new OrderExecutedEvent(enterOrderRq.getRequestId(), enterOrderRq.getOrderId(), matchResult.trades().stream().map(TradeDTO::new).collect(Collectors.toList())));
         }
+        if (matchResult.getOutcome() == MatchingOutcome.ORDER_ADDED_TO_AUCTION)
+            eventPublisher.publish(new OpeningPriceEvent(enterOrderRq.getSecurityIsin(), matchResult.getAuctionPrice(),
+                    matchResult.getTradableQuantity()));
+        if (matchResult.getOutcome() == MatchingOutcome.AUCTION_ORDER_BOOK_CHANGED) {
+            eventPublisher.publish(new OpeningPriceEvent(enterOrderRq.getSecurityIsin(), matchResult.getAuctionPrice(),
+                    matchResult.getTradableQuantity()));
+        }
+
     }
 
     private void publishActivations(ArrayList<MatchResult> activationResults){

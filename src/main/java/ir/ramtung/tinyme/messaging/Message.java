@@ -25,4 +25,5 @@ public class Message {
     public static final String CANNOT_CHANGE_STOP_LIMIT_ORDER_FOR_AUCTION_SECURITY = "Cannot change stop limit order for auction security";
     public static final String AUCTION_ORDER_CANNOT_HAVE_MIN_EXEC_QUANTITY = "Auction order cannot have minimum execution quantity";
     public static final String CANNOT_DELETE_STOP_LIMIT_ORDER_IN_AUCTION = "Cannot delete stop limit order in auction";
+    public static final String CANNOT_HAVE_STOP_LIMIT_ORDER_IN_AUCTION_SECURITY = "Cannot have stop limit order in auction security";
 }
