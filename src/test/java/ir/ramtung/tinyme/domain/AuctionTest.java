@@ -243,6 +243,27 @@ public class AuctionTest {
         verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 0));
     }
 
+    @Test
+    void auction_debt_to_buyer_broker_payed(){
+        shareholder.incPosition(auctionSecurity,100_000_000);
+        brokerRepository.findBrokerById(broker2.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(3, "CBA", 10,
+                LocalDateTime.now(), Side.BUY, 300, 660, broker2.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        assertThat(brokerRepository.findBrokerById(broker2.getBrokerId()).getCredit()).isEqualTo(100_000_000 - (660 * 300));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "CBA", MatchingState.AUCTION));
+        assertThat(brokerRepository.findBrokerById(broker2.getBrokerId()).getCredit()).isEqualTo(100_000_000 - (630 * 300));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 300));
+        verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
+        verify(eventPublisher).publish(any(TradeEvent.class));
+    }
+
 
 
 
