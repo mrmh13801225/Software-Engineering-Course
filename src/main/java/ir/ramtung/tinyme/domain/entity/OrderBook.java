@@ -186,9 +186,20 @@ public class OrderBook {
         openingPrice = calculateExactOpeningPrice((int) price, lowerBoundPrice, upperBoundPrice);
 
         if(tradableQuantity == 0)
-            openingPrice = (int)price;
+        {
+            openingPrice = handleZeroTradableQuantity(price);
+        }
 
         return openingPrice;
+    }
+
+    public int handleZeroTradableQuantity(long price){
+        if(sellQueue.isEmpty() && !buyQueue.isEmpty())
+            return (int)Math.min(buyQueue.getFirst().getPrice(), price);
+        else if(buyQueue.isEmpty() && !sellQueue.isEmpty())
+            return (int)Math.max(sellQueue.getFirst().getPrice(), price);
+        else
+            return 0;
     }
 
 }

@@ -192,10 +192,10 @@ public class AuctionTest {
         verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 300));
 
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "CBA", 200,
-                LocalDateTime.now(), Side.SELL, 400, 680, broker1.getBrokerId(), shareholder.getShareholderId(),
+                LocalDateTime.now(), Side.SELL, 290, 598, broker1.getBrokerId(), shareholder.getShareholderId(),
                 0));
         verify(eventPublisher).publish(new OrderUpdatedEvent(2, 200));
-        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 290));
     }
 
     @Test
@@ -205,14 +205,43 @@ public class AuctionTest {
                 LocalDateTime.now(), Side.BUY, 400, 670, broker1.getBrokerId(), shareholder.getShareholderId(),
                 0, 650));
         orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "ABC", MatchingState.AUCTION));
-//        verify(eventPublisher).publish();
         orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(3, "ABC", 200,
                 LocalDateTime.now(), Side.BUY, 400, 680, broker1.getBrokerId(), shareholder.getShareholderId(), 0, 650));
         verify(eventPublisher).publish(any(OrderRejectedEvent.class));
     }
 
+    @Test
+    void reject_delete_of_stop_limit_order_in_auction(){
+        brokerRepository.findBrokerById(broker1.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 200,
+                LocalDateTime.now(), Side.BUY, 400, 670, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0, 650));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "ABC", MatchingState.AUCTION));
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(4, security.getIsin(), Side.BUY, 200));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+    }
 
+    @Test
+    void successful_deletion_of_order_in_auction(){
+        shareholder.incPosition(auctionSecurity,100_000_000);
+        brokerRepository.findBrokerById(broker2.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(3, "CBA", 10,
+                LocalDateTime.now(), Side.BUY, 300, 600, broker2.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleDeleteOrder(new DeleteOrderRq(100, auctionSecurity.getIsin(), Side.SELL, 200));
 
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 300));
+        verify(eventPublisher).publish(new OrderDeletedEvent(100, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 0));
+    }
 
 
 
