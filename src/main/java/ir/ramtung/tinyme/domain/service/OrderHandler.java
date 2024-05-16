@@ -243,7 +243,7 @@ public class OrderHandler {
 
     private void publishSecurityChangingResult(ChangeSecurityResult changeSecurityResult,
                                                ChangeMatchingStateRq changeMatchingStateRq, ArrayList<MatchResult> auctionOpeningMatchResults){
-      
+
         eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
                 changeMatchingStateRq.getTargetState()));
 
@@ -280,7 +280,7 @@ public class OrderHandler {
         handleSecurityReplacing(changeSecurityResult);
         ArrayList<MatchResult> openingResult = handleOpening(changeSecurityResult);
 
-        publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq);
+        publishSecurityChangingResult(changeSecurityResult, changeMatchingStateRq, openingResult);
     }
 
 }
