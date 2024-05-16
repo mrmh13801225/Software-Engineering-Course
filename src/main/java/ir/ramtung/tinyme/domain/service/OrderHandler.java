@@ -284,6 +284,9 @@ public class OrderHandler {
     public void handleChangeMatchingState(ChangeMatchingStateRq changeMatchingStateRq){
         //TODO:may need validations .
         Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
+        if (security == null) {
+            
+        }
         ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
         handleSecurityReplacing(changeSecurityResult);
         ArrayList<MatchResult> openingResult = handleOpening(changeSecurityResult);
