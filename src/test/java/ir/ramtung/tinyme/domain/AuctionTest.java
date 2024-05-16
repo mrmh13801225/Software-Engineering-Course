@@ -134,6 +134,7 @@ public class AuctionTest {
 
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
         verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(any(OrderExecutedEvent.class));
         verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
 
     }
@@ -153,6 +154,7 @@ public class AuctionTest {
 
         verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
         verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(any(OrderExecutedEvent.class));
         verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
 
     }
