@@ -119,6 +119,29 @@ public class AuctionTest {
 
     }
 
+    @Test
+    void accept_convert_continuous_to_auction() {
+
+
+        shareholder.incPosition(auctionSecurity,100_000_000);
+        brokerRepository.findBrokerById(broker2.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(3, "CBA", 10,
+                LocalDateTime.now(), Side.BUY, 300, 600, broker2.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "CBA", MatchingState.AUCTION));
+
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 300));
+        verify(eventPublisher).publish(any(SecurityStateChangedEvent.class));
+        verify(eventPublisher).publish(any(TradeEvent.class));
+
+    }
+
 
 
 
