@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.setPrintAssertionsDescription;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 
@@ -159,10 +160,56 @@ public class AuctionTest {
 
     }
 
+    @Test
+    void reject_new_min_exec_quantity_order_to_auction(){
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0, 10));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+    }
 
+    @Test
+    void reject_new_stop_limit_order_to_auction(){
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0, 10));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+    }
 
+    @Test
+    void successful_update_of_auction(){
+        shareholder.incPosition(auctionSecurity,100_000_000);
+        brokerRepository.findBrokerById(broker2.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(3, "CBA", 10,
+                LocalDateTime.now(), Side.BUY, 300, 600, broker2.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(3, 10));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 600, 300));
 
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateOrderRq(2, "CBA", 200,
+                LocalDateTime.now(), Side.SELL, 400, 680, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0));
+        verify(eventPublisher).publish(new OrderUpdatedEvent(2, 200));
+        verify(eventPublisher).publish(new OpeningPriceEvent(auctionSecurity.getIsin(), 630, 0));
+    }
 
+    @Test
+    void reject_update_of_stop_limit_order_auction(){
+        brokerRepository.findBrokerById(broker1.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 200,
+                LocalDateTime.now(), Side.BUY, 400, 670, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0, 650));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(2, "ABC", MatchingState.AUCTION));
+//        verify(eventPublisher).publish();
+        orderHandler.handleEnterOrder(EnterOrderRq.createUpdateStopLimitOrderRq(3, "ABC", 200,
+                LocalDateTime.now(), Side.BUY, 400, 680, broker1.getBrokerId(), shareholder.getShareholderId(), 0, 650));
+        verify(eventPublisher).publish(any(OrderRejectedEvent.class));
+    }
 
 
 
