@@ -15,4 +15,6 @@ public class OrderRejectedEvent extends Event {
     private long requestId;
     private long orderId;
     private List<String> errors;
+
+    public static final long NO_ORDER_ID = -1 ;
 }

@@ -285,7 +285,9 @@ public class OrderHandler {
         //TODO:may need validations .
         Security security = securityRepository.findSecurityByIsin(changeMatchingStateRq.getSecurityIsin());
         if (security == null) {
-            
+            eventPublisher.publish(new OrderRejectedEvent(changeMatchingStateRq.getRequestId(),
+                    OrderRejectedEvent.NO_ORDER_ID,List.of(Message.UNKNOWN_SECURITY_ISIN)));
+            return;
         }
         ChangeSecurityResult changeSecurityResult = security.changeTo(changeMatchingStateRq);
         handleSecurityReplacing(changeSecurityResult);
