@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 @SuperBuilder
 public class AuctionSecurity extends Security{
@@ -25,6 +26,7 @@ public class AuctionSecurity extends Security{
         }
         order.getBroker().decreaseCreditBy(order.getValue());
         orderBook.enqueue(order);
+        order.queue();
         //TODO:maybe need to add order.queued;
         return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
@@ -55,6 +57,63 @@ public class AuctionSecurity extends Security{
             return updateActiveOrder(updateOrderRq ,matcher );
         else
             return MatchResult.updateAuctionStopLimitError();
+    }
+
+
+    //////////////////check !
+    @Override
+    protected MatchResult updateActiveOrder(EnterOrderRq updateOrderRq , Matcher matcher )
+            throws  InvalidRequestException{
+        Order order = orderBook.findByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
+        MatchResult validationResult = validateUpdateRequest(order ,updateOrderRq );
+        if(validationResult != null)
+            return validationResult;
+
+        boolean loosesPriority = doesItLosePriority(order ,updateOrderRq );
+
+        updateActiveOrderCreditHandler(order ,updateOrderRq );
+        Order originalOrder = order.snapshot();
+        order.updateFromRequest(updateOrderRq);
+
+        MatchResult priorityLossResult = handlePriorityLoss(order ,updateOrderRq ,loosesPriority );
+        if (priorityLossResult != null)
+            return priorityLossResult;
+
+
+        return handleUpdateOrderExecution(updateOrderRq ,matcher ,order ,originalOrder ) ;
+    }
+
+    @Override
+    protected MatchResult handleUpdateOrderExecution (EnterOrderRq updateOrderRq ,Matcher matcher ,Order order ,
+                                                      Order originalOrder){
+
+        orderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
+        if (updateOrderRq.getSide() == Side.BUY) {
+            if(order.getBroker().hasEnoughCredit(order.getValue())) {
+                order.getBroker().decreaseCreditBy(order.getValue());
+                orderBook.enqueue(order);
+            }
+            else {
+                originalOrder.getBroker().decreaseCreditBy(originalOrder.getValue());
+                orderBook.enqueue(originalOrder);
+                return MatchResult.notEnoughCredit();
+            }
+        } else {
+            orderBook.enqueue(order);
+        }
+
+        return MatchResult.changeAuctionOrderBook(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
+    }
+
+    @Override
+    protected MatchResult handlePriorityLoss (Order order ,EnterOrderRq updateOrderRq ,boolean loosesPriority ){
+        if (!loosesPriority) {
+            if (updateOrderRq.getSide() == Side.BUY) {
+                order.getBroker().decreaseCreditBy(order.getValue());
+            }
+            return MatchResult.changeAuctionOrderBook(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
+        }
+        return null ;
     }
 
     public ArrayList<MatchResult> matchTradableOrders(AuctionMatcher matcher){

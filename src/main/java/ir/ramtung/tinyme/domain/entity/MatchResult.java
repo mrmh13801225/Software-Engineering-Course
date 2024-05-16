@@ -82,6 +82,11 @@ public final class MatchResult {
                                                                 new LinkedList<>(), 0, 0);
     }
 
+    public static MatchResult changeAuctionOrderBook(int openingPrice, int quantity) {
+        return new MatchResult(MatchingOutcome.AUCTION_ORDER_BOOK_CHANGED, null,
+                new LinkedList<>(), 0, 0);
+    }
+
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
                        int tradablePrice) {
         this.outcome = outcome;

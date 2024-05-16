@@ -174,14 +174,10 @@ public class OrderBook {
             return price;
     }
 
-    public int calculateOpeningPrice (long price) throws InvalidRequestException {
+    public int calculateOpeningPrice (long price) {
         //<price, tradeable quantity>
         Pair<Integer, Integer> upperBoundResult = findOptimalOpeningPriceBySide(Side.BUY);
         Pair<Integer, Integer> lowerBoundResult = findOptimalOpeningPriceBySide(Side.SELL);
-
-        if(!upperBoundResult.getRight().equals(lowerBoundResult.getRight())) {
-            throw new InvalidRequestException("Not Equal Bounds");
-        }
 
         int upperBoundPrice = upperBoundResult.getLeft();
         int lowerBoundPrice = lowerBoundResult.getLeft();
