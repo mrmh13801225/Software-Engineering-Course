@@ -92,6 +92,9 @@ public class OrderHandler {
             errors.add(Message.UNKNOWN_BROKER_ID);
         if (shareholderRepository.findShareholderById(enterOrderRq.getShareholderId()) == null)
             errors.add(Message.UNKNOWN_SHAREHOLDER_ID);
+        if ((security instanceof AuctionSecurity) && (enterOrderRq.getMinimumExecutionQuantity() != 0)) {
+            errors.add(Message.AUCTION_ORDER_CANNOT_HAVE_MIN_EXEC_QUANTITY);
+        }
 
         return errors ;
     }
@@ -239,10 +242,16 @@ public class OrderHandler {
     }
 
     private void publishSecurityChangingResult(ChangeSecurityResult changeSecurityResult,
-                                               ChangeMatchingStateRq changeMatchingStateRq){
-        //TODO: must complete this section.
+                                               ChangeMatchingStateRq changeMatchingStateRq, ArrayList<MatchResult> auctionOpeningMatchResults){
+      
         eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
                 changeMatchingStateRq.getTargetState()));
+
+        for (MatchResult auctionOpeningMatchResult : auctionOpeningMatchResults) {
+            for (Trade trade : auctionOpeningMatchResult.getTrades()) {
+                eventPublisher.publish(new TradeEvent(trade.getSecurity().getIsin(), trade.getPrice(), trade.getQuantity(), trade.getBuy().getOrderId(), trade.getSell().getOrderId()));
+            }
+        }
     }
 
     private void handleSecurityReplacing (ChangeSecurityResult changeSecurityResult){
