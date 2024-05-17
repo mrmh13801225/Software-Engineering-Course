@@ -384,7 +384,7 @@ public class AuctionTest {
     @Test
     void stop_limit_order_activates_after_reopening_from_auction_to_continuous(){
 //        initialize_orders_for_auction_matcher();
-        auctionSecurity.setLastTradePrice(5);
+        auctionSecurity.updatePrice(5);
 //        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 5, LocalDateTime.now(), Side.BUY, 100, 30, 1, shareholder.getShareholderId(), 0, 0, 10));
 
         orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 5,

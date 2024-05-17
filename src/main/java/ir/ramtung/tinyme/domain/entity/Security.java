@@ -296,8 +296,4 @@ public class Security {
         this.price = price;
     }
 
-    public void setLastTradePrice(int lastPrice) {
-        price = lastPrice;
-    }
-
 }
