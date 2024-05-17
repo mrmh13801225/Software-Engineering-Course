@@ -95,6 +95,10 @@ public class AuctionSecurity extends Security{
         return null ;
     }
 
+    public void setLastTradePrice(int lastPrice) {
+        price = lastPrice;
+    }
+
     public MatchResult deleteAuctionOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
         Order order = findOrder(deleteOrderRq);
 
