@@ -93,6 +93,11 @@ public final class MatchResult {
                 new LinkedList<>(), openingPrice, quantity);
     }
 
+    public static MatchResult invalidOpeningPrice(){
+        return new MatchResult(MatchingOutcome.INVALID_OPENING_PRICE, null,
+        new LinkedList<>(), 0, 0);
+    }
+
     public MatchResult(MatchingOutcome outcome, Order remainder, LinkedList<Trade> trades, int auctionPrice,
                        int tradableQuantity) {
         this.outcome = outcome;

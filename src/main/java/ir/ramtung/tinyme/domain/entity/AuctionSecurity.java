@@ -116,7 +116,10 @@ public class AuctionSecurity extends Security{
         ArrayList<MatchResult> results = new ArrayList<>();
         Order buy = orderBook.getFirstBuy();
         while (buy != null) {
-            results.add(matcher.execute(buy, orderBook.getOpeningPrice()));
+            MatchResult temp = matcher.execute(buy, orderBook.getOpeningPrice());
+            results.add(temp);
+            if (temp.getRemainder().getQuantity() != 0)
+                break;
             buy = orderBook.getFirstBuy();
         }
 
@@ -124,6 +127,11 @@ public class AuctionSecurity extends Security{
     }
 
     public ArrayList<MatchResult> open (AuctionMatcher matcher){
+        if(orderBook.getOpeningPrice() == 0){
+            ArrayList<MatchResult> result = new ArrayList<>();
+            result.add(MatchResult.invalidOpeningPrice());
+            return result;
+        }
         ArrayList<MatchResult> results = new ArrayList<>();
         results.addAll(matchTradableOrders(matcher));
         price = orderBook.getOpeningPrice();

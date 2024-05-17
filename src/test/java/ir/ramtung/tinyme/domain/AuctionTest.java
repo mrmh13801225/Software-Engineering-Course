@@ -60,43 +60,6 @@ public class AuctionTest {
     private OrderBook testOrderBook;
     private AuctionMatcher matcher = new AuctionMatcher();
 
-//    void setupOrderBook() {
-//        security = Security.builder().build();
-//        broker1 = Broker.builder().credit(100_000_000L).build();
-//        broker2 = Broker.builder().credit(100_000_000L).build();
-//        shareholder = Shareholder.builder().build();
-//        shareholder.incPosition(security, 100_000);
-//        testOrderBook = security.getOrderBook();
-//        orders = Arrays.asList(
-//                new Order(1, security, Side.BUY, 5, 30, broker1, shareholder, 0),
-//                new Order(2, security, Side.BUY, 5,20 , broker1, shareholder, 0),
-//                new Order(3, security, Side.BUY, 5, 10, broker1, shareholder, 0),
-//                new Order(6, security, Side.SELL, 5, 5, broker2, shareholder, 0),
-//                new Order(7, security, Side.SELL, 5, 14, broker2, shareholder, 0),
-//                new Order(8, security, Side.SELL, 5, 25, broker2, shareholder, 0)
-//        );
-//        orders.forEach(order -> testOrderBook.enqueue(order));
-//    }
-
-//    void initialize_orders_for_auction_matcher(){
-//        orders = Arrays.asList(
-//                new Order(1, auctionSecurity, Side.BUY, 5, 30, broker1, shareholder, 0),
-//                new Order(2, auctionSecurity, Side.BUY, 5,20 , broker1, shareholder, 0),
-//                new Order(3, auctionSecurity, Side.BUY, 5, 10, broker1, shareholder, 0),
-//                new Order(6, auctionSecurity, Side.SELL, 5, 5, broker2, shareholder, 0),
-//                new Order(7, auctionSecurity, Side.SELL, 5, 14, broker2, shareholder, 0),
-//                new Order(8, auctionSecurity, Side.SELL, 5, 25, broker2, shareholder, 0)
-//        );
-//        broker1.increaseCreditBy(1000_000L);
-//        broker2.increaseCreditBy(1000_000L);
-//        broker3.increaseCreditBy(1000_000L);
-//        orders.forEach(order -> auctionSecurity.getOrderBook().enqueue(order));
-//        brokerRepository.clear();
-//        brokerRepository.addBroker(broker1);
-//        brokerRepository.addBroker(broker2);
-//        brokerRepository.addBroker(broker3);
-//    }
-
     @BeforeEach
     void setup() {
         securityRepository.clear();
@@ -105,9 +68,10 @@ public class AuctionTest {
 
         security = Security.builder().isin("ABC").build();
         auctionSecurity = AuctionSecurity.builder().isin("CBA").price(630).build();
-        newAuctionSecurity = AuctionSecurity.builder().isin("CBA").build();
+        newAuctionSecurity = AuctionSecurity.builder().isin("BCA").build();
         securityRepository.addSecurity(security);
         securityRepository.addSecurity(auctionSecurity);
+        securityRepository.addSecurity(newAuctionSecurity);
 
         shareholder = Shareholder.builder().build();
         shareholder.incPosition(security, 100_000);
@@ -121,12 +85,12 @@ public class AuctionTest {
         brokerRepository.addBroker(broker3);
         testOrderBook = newAuctionSecurity.getOrderBook();
         orders = Arrays.asList(
-                new Order(1, security, Side.BUY, 5, 30, broker1, shareholder, 0),
-                new Order(2, security, Side.BUY, 5,20 , broker1, shareholder, 0),
-                new Order(3, security, Side.BUY, 5, 10, broker1, shareholder, 0),
-                new Order(6, security, Side.SELL, 5, 5, broker2, shareholder, 0),
-                new Order(7, security, Side.SELL, 5, 14, broker2, shareholder, 0),
-                new Order(8, security, Side.SELL, 5, 25, broker2, shareholder, 0)
+                new Order(1, newAuctionSecurity, Side.BUY, 5, 30, broker1, shareholder, 0),
+                new Order(2, newAuctionSecurity, Side.BUY, 5,20 , broker1, shareholder, 0),
+                new Order(3, newAuctionSecurity, Side.BUY, 5, 10, broker1, shareholder, 0),
+                new Order(6, newAuctionSecurity, Side.SELL, 5, 5, broker2, shareholder, 0),
+                new Order(7, newAuctionSecurity, Side.SELL, 5, 14, broker2, shareholder, 0),
+                new Order(8, newAuctionSecurity, Side.SELL, 5, 25, broker2, shareholder, 0)
         );
         orders.forEach(order -> testOrderBook.enqueue(order));
     }
@@ -383,30 +347,28 @@ public class AuctionTest {
 
     @Test
     void stop_limit_order_activates_after_reopening_from_auction_to_continuous(){
-//        initialize_orders_for_auction_matcher();
         auctionSecurity.updatePrice(5);
-//        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 5, LocalDateTime.now(), Side.BUY, 100, 30, 1, shareholder.getShareholderId(), 0, 0, 10));
-
-        orderHandler.handleEnterOrder(EnterOrderRq.createNewOrderRq(1, "CBA", 5,
-                LocalDateTime.now(), Side.SELL, 30, 100, broker1.getBrokerId(), shareholder.getShareholderId(),
-                0));
-        int op = auctionSecurity.getOrderBook().getOpeningPrice();
-        int tp = auctionSecurity.getOrderBook().getTradableQuantity();
-//        auctionSecurity.setMatchingState(MatchingState.AUCTION);
-        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(10, "CBA", MatchingState.CONTINUOUS));
-        verify(eventPublisher).publish(new OrderActivatedEvent(1, 5));
-        verify(eventPublisher).publish(new SecurityStateChangedEvent("CBA", MatchingState.CONTINUOUS));
-        verify(eventPublisher).publish(new OrderExecutedEvent(1, 5, List.of(new TradeDTO(new Trade(auctionSecurity, 25, 5, auctionSecurity.getOrderBook().findByOrderId(Side.BUY, 5), orders.get(5))))));
-        assertThat(auctionSecurity.getOrderBook().findByOrderId(Side.BUY, 5)).isNotNull();
+        shareholderRepository.findShareholderById(shareholder.getShareholderId()).incPosition(newAuctionSecurity,100_000_000);
+        brokerRepository.findBrokerById(broker1.getBrokerId()).increaseCreditBy(100_000_000);
+        brokerRepository.findBrokerById(broker2.getBrokerId()).increaseCreditBy(100_000_000);
+        orderHandler.handleEnterOrder(EnterOrderRq.createNewStopLimitOrderRq(1, "ABC", 200,
+                LocalDateTime.now(), Side.SELL, 400, 590, broker1.getBrokerId(), shareholder.getShareholderId(),
+                0, 10));
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(10, "ABC", MatchingState.AUCTION));
+        security.updatePrice(15);
+        orderHandler.handleChangeMatchingState(new ChangeMatchingStateRq(10, "ABC", MatchingState.CONTINUOUS));
+        verify(eventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(eventPublisher).publish(new OrderActivatedEvent(1, 200));
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.AUCTION));
+        verify(eventPublisher).publish(new SecurityStateChangedEvent("ABC", MatchingState.CONTINUOUS));
     }
 
     @Test
     void active_stop_limit_can_be_updated(){
         broker1.increaseCreditBy(100_000_000);
-        StopLimitOrder stopLimitOrder = new StopLimitOrder(10, security, Side.BUY, 5, 30, broker1, shareholder, 25);
+        StopLimitOrder stopLimitOrder = new StopLimitOrder(10, newAuctionSecurity, Side.BUY, 5, 30, broker1, shareholder, 25);
         testOrderBook.enqueue(stopLimitOrder);
         MatchResult matchResult = matcher.execute(stopLimitOrder);
         assertThat(matchResult.outcome()).isEqualTo(MatchingOutcome.EXECUTED);
     }
-
 }
