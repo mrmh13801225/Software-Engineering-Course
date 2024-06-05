@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChangeMatchingStateRq {
+public class ChangeMatchingStateRq extends Request{
 
     private long requestId;
     private String securityIsin;
