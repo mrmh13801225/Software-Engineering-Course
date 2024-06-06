@@ -13,9 +13,9 @@ import lombok.Getter;
 
 @Getter
 public class RequestPropertyFinder {
-    Security security;
-    Shareholder shareholder;
-    Broker broker;
+    private final Security security;
+    private final Shareholder shareholder;
+    private final Broker broker;
 
     public RequestPropertyFinder (EnterOrderRq enterOrderRq, SecurityRepository securityRepository,
                                   ShareholderRepository shareholderRepository, BrokerRepository brokerRepository){
