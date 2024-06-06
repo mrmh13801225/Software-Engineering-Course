@@ -35,8 +35,15 @@ public class NewOrderHandler {
         this.strategies = strategies;
     }
 
-    public void handleRequest(Request request){
+    public void handleRequest(Request request) {
         RequestHandlingStrategy strategy = strategies.get(request.getClass());
+        RequestPropertyFinder properties = request.findProperties(securityRepository, shareholderRepository, brokerRepository);
+        try {
+            RequestHandlingResult requestHandlingResult = strategy.handleRequest(request, properties.getSecurity(),
+                    properties.getShareholder(), properties.getBroker(), matcher, securityRepository);
+        } catch (InvalidRequestException e) {
+            return;//TODO: call reject method of publish management
+        }
     }
 
 
