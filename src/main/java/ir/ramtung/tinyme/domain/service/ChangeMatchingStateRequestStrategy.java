@@ -1,6 +1,7 @@
 package ir.ramtung.tinyme.domain.service;
 
 import ir.ramtung.tinyme.domain.entity.*;
+import ir.ramtung.tinyme.messaging.Message;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.Request;
@@ -8,10 +9,22 @@ import ir.ramtung.tinyme.repository.SecurityRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
 public class ChangeMatchingStateRequestStrategy implements RequestHandlingStrategy{
+
+    @Override
+    public void validateRequest(Request request, Security security, Broker broker, Shareholder shareholder)
+            throws InvalidRequestException {
+        List<String> errors = new LinkedList<>();
+        if (security == null)
+            errors.add(Message.UNKNOWN_SECURITY_ISIN);
+        if (!errors.isEmpty())
+            throw new InvalidRequestException(errors);
+
+    }
 
     private ArrayList<MatchResult> handleSecurityReplacing (ChangeSecurityResult changeSecurityResult,
                                                             SecurityRepository securityRepository, Matcher matcher){
