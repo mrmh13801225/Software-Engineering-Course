@@ -5,6 +5,7 @@ import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.messaging.request.OrderEntryType;
 import ir.ramtung.tinyme.messaging.request.Request;
+import ir.ramtung.tinyme.repository.SecurityRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +21,15 @@ public class EnterOrderRequestStrategy implements RequestHandlingStrategy{
     }
 
     @Override
-    public List<Result> handleRequest(Request request, Security security, Shareholder shareholder, Broker broker,
-                                      Matcher matcher) throws InvalidRequestException {
-        List<Result> results = new ArrayList<>();
+    public RequestHandlingResult handleRequest(Request request, Security security, Shareholder shareholder, Broker broker,
+                                               Matcher matcher, SecurityRepository securityRepository)
+                                      throws InvalidRequestException {
+        RequestHandlingResult results = new RequestHandlingResult();
         EnterOrderRq enterOrderRq = (EnterOrderRq) request;
 
-        results.add(executeRequest(enterOrderRq ,security ,broker ,shareholder, matcher));
-        results.addAll(security.handleActivation());
-        results.addAll(security.executeActivatedStopOrders(matcher));
+        results.executionResult = executeRequest(enterOrderRq ,security ,broker ,shareholder, matcher);
+        results.ActivationResults.addAll(security.handleActivation());
+        results.ActivationResults.addAll(security.executeActivatedStopOrders(matcher));
 
         return results;
     }
