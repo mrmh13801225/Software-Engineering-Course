@@ -6,7 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 @Getter
-public final class MatchResult {
+public final class MatchResult extends Result{
     private final MatchingOutcome outcome;
     private final Order remainder;
     private final LinkedList<Trade> trades;

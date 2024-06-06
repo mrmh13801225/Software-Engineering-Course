@@ -1,9 +1,6 @@
 package ir.ramtung.tinyme.domain.service;
 
-import ir.ramtung.tinyme.domain.entity.Broker;
-import ir.ramtung.tinyme.domain.entity.MatchResult;
-import ir.ramtung.tinyme.domain.entity.Security;
-import ir.ramtung.tinyme.domain.entity.Shareholder;
+import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.messaging.request.OrderEntryType;
@@ -23,9 +20,9 @@ public class EnterOrderRequestStrategy implements RequestHandlingStrategy{
     }
 
     @Override
-    public List<MatchResult> handleRequest(Request request, Security security, Shareholder shareholder, Broker broker,
-                                           Matcher matcher) throws InvalidRequestException {
-        List<MatchResult> results = new ArrayList<>();
+    public List<Result> handleRequest(Request request, Security security, Shareholder shareholder, Broker broker,
+                                      Matcher matcher) throws InvalidRequestException {
+        List<Result> results = new ArrayList<>();
         EnterOrderRq enterOrderRq = (EnterOrderRq) request;
 
         results.add(executeRequest(enterOrderRq ,security ,broker ,shareholder, matcher));

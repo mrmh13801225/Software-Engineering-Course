@@ -3,7 +3,7 @@ package ir.ramtung.tinyme.domain.entity;
 import lombok.Getter;
 
 @Getter
-public class ChangeSecurityResult {
+public class ChangeSecurityResult extends Result{
 
     SecurityChangingResult changingResult ;
     Security security ;
