@@ -1,9 +1,6 @@
 package ir.ramtung.tinyme.config;
 
-import ir.ramtung.tinyme.domain.service.ChangeMatchingStateRequestStrategy;
-import ir.ramtung.tinyme.domain.service.DeleteOrderRequestStrategy;
-import ir.ramtung.tinyme.domain.service.EnterOrderRequestStrategy;
-import ir.ramtung.tinyme.domain.service.RequestHandlingStrategy;
+import ir.ramtung.tinyme.domain.service.*;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
@@ -24,6 +21,18 @@ public class Configurations {
             DeleteOrderRequestStrategy deleteOrderRequestStrategy,
             ChangeMatchingStateRequestStrategy changeMatchingStateRequestStrategy) {
         Map<Class<? extends Request>, RequestHandlingStrategy> strategyMap = new HashMap<>();
+        strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
+        strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
+        strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);
+        return strategyMap;
+    }
+
+    @Bean
+    public Map<Class<? extends Request>, ResultPublishingStrategy> strategyMap(
+            EnterOrderRequestResultPublishingStrategy enterOrderRequestStrategy,
+            DeleteOrderRequestResultPublishingStrategy deleteOrderRequestStrategy,
+            ChangeMatchingStateRequestResultPublishingStrategy changeMatchingStateRequestStrategy) {
+        Map<Class<? extends Request>, ResultPublishingStrategy> strategyMap = new HashMap<>();
         strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
         strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
         strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);

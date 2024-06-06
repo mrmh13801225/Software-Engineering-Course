@@ -18,12 +18,12 @@ public class NewOrderHandler {
     EventPublisher eventPublisher;
     Matcher matcher;
     private final Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategies;
-    private final Map<Class<? extends Request>, RequestHandlingStrategy> resultPublishingStrategies;
+    private final Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategies;
 
     public NewOrderHandler(SecurityRepository securityRepository, BrokerRepository brokerRepository,
                            ShareholderRepository shareholderRepository, EventPublisher eventPublisher, Matcher matcher,
                            Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategies,
-                           Map<Class<? extends Request>, RequestHandlingStrategy> resultPublishingStrategies) {
+                           Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategies) {
         this.securityRepository = securityRepository;
         this.brokerRepository = brokerRepository;
         this.shareholderRepository = shareholderRepository;
@@ -34,14 +34,16 @@ public class NewOrderHandler {
     }
 
     public void handleRequest(Request request) {
-        RequestHandlingStrategy strategy = requestHandlingStrategies.get(request.getClass());
+        RequestHandlingStrategy requestHandlingStrategy = requestHandlingStrategies.get(request.getClass());
+        ResultPublishingStrategy resultPublishingStrategy = resultPublishingStrategies.get(request.getClass());
         RequestPropertyFinder properties = request.findProperties(securityRepository, shareholderRepository, brokerRepository);
         try {
-            strategy.validateRequest(request, properties.getSecurity(), properties.getBroker(), properties.getShareholder());
-            RequestHandlingResult requestHandlingResult = strategy.handleRequest(request, properties.getSecurity(),
+            requestHandlingStrategy.validateRequest(request, properties.getSecurity(), properties.getBroker(), properties.getShareholder());
+            RequestHandlingResult requestHandlingResult = requestHandlingStrategy.handleRequest(request, properties.getSecurity(),
                     properties.getShareholder(), properties.getBroker(), matcher, securityRepository);
+            resultPublishingStrategy.publishSuccess(request, requestHandlingResult, eventPublisher);
         } catch (InvalidRequestException e) {
-            return;//TODO: call reject method of publish management
+            resultPublishingStrategy.publishFailure(request, e.getReasons(), eventPublisher);
         }
     }
 

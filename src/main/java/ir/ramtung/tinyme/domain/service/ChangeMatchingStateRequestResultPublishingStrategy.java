@@ -1,19 +1,17 @@
 package ir.ramtung.tinyme.domain.service;
 
-import ir.ramtung.tinyme.domain.entity.ChangeSecurityResult;
-import ir.ramtung.tinyme.domain.entity.MatchResult;
-import ir.ramtung.tinyme.domain.entity.SecurityChangingResult;
-import ir.ramtung.tinyme.domain.entity.Trade;
+import ir.ramtung.tinyme.domain.entity.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.event.SecurityStateChangedEvent;
 import ir.ramtung.tinyme.messaging.event.TradeEvent;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.Request;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ChangeMatchingStateRequestResultPublishingStrategy extends BaseResultPublisher{
+@Service
+public class ChangeMatchingStateRequestResultPublishingStrategy extends BaseResultPublisher<ChangeMatchingStateRq>{
 
     private void publishAuctionTrades(List<MatchResult> auctionOpeningMatchResults, EventPublisher eventPublisher){
 
@@ -26,17 +24,18 @@ public class ChangeMatchingStateRequestResultPublishingStrategy extends BaseResu
     }
 
     @Override
-    public void publishSuccess(Request request, RequestHandlingResult result, EventPublisher eventPublisher) {
-        ChangeMatchingStateRq changeMatchingStateRq = (ChangeMatchingStateRq) request;
+    public void publishSuccess(ChangeMatchingStateRq request, RequestHandlingResult result, EventPublisher eventPublisher) {
         ChangeSecurityResult changeSecurityResult = (ChangeSecurityResult) result.executionResult;
 
         eventPublisher.publish(new SecurityStateChangedEvent(changeSecurityResult.getSecurity().getIsin(),
-                changeMatchingStateRq.getTargetState()));
+                request.getTargetState()));
         if(changeSecurityResult.getChangingResult() == SecurityChangingResult.VIRTUAL)
             publishAuctionTrades(result.OpenningResults, eventPublisher);
         publishActivatedOrdersExecution(result.ActivationResults, eventPublisher);
     }
 
     @Override
-    public void publishFailure(Request request, ArrayList errors, EventPublisher eventPublisher) {}
+    public void publishFailure(ChangeMatchingStateRq request, List<String> errors, EventPublisher eventPublisher) {
+        return;
+    }
 }
