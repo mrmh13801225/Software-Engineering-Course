@@ -6,10 +6,12 @@ import ir.ramtung.tinyme.messaging.request.EnterOrderRq;
 import ir.ramtung.tinyme.messaging.request.OrderEntryType;
 import ir.ramtung.tinyme.messaging.request.Request;
 import ir.ramtung.tinyme.repository.SecurityRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class EnterOrderRequestStrategy implements RequestHandlingStrategy{
 
     private MatchResult executeRequest(EnterOrderRq enterOrderRq ,Security security ,Broker broker ,

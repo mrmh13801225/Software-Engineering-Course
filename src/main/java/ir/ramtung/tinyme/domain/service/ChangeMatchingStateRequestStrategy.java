@@ -5,10 +5,12 @@ import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
 import ir.ramtung.tinyme.messaging.request.Request;
 import ir.ramtung.tinyme.repository.SecurityRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class ChangeMatchingStateRequestStrategy implements RequestHandlingStrategy{
 
     private ArrayList<MatchResult> handleSecurityReplacing (ChangeSecurityResult changeSecurityResult,

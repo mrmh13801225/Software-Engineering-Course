@@ -5,10 +5,12 @@ import ir.ramtung.tinyme.messaging.exception.InvalidRequestException;
 import ir.ramtung.tinyme.messaging.request.DeleteOrderRq;
 import ir.ramtung.tinyme.messaging.request.Request;
 import ir.ramtung.tinyme.repository.SecurityRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class DeleteOrderRequestStrategy implements RequestHandlingStrategy{
     @Override
     public RequestHandlingResult handleRequest(Request request, Security security, Shareholder shareholder, Broker broker,
