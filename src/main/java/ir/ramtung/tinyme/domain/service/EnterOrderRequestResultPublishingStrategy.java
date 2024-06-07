@@ -79,6 +79,6 @@ public class EnterOrderRequestResultPublishingStrategy extends BaseResultPublish
 
     @Override
     public void publishFailure(EnterOrderRq request, List<String> errors, EventPublisher eventPublisher) {
-
+        eventPublisher.publish(new OrderRejectedEvent(request.getRequestId(), request.getOrderId(), errors));
     }
 }
