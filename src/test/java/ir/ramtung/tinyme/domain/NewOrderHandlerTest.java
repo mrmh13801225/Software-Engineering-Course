@@ -153,11 +153,6 @@ public class NewOrderHandlerTest {
 
     @Test
     void invalid_new_order_with_multiple_errors() {
-        EventPublisher mockEventPublisher = Mockito.mock(EventPublisher.class);
-        // Set up any necessary behavior for the mock
-
-        // Replace the real eventPublisher bean with the mock
-        ReflectionTestUtils.setField(orderHandler, "eventPublisher", mockEventPublisher);
 
         orderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1, "XXX", -1, LocalDateTime.now(), Side.SELL, 0, 0, -1, -1, 0));
         ArgumentCaptor<OrderRejectedEvent> orderRejectedCaptor = ArgumentCaptor.forClass(OrderRejectedEvent.class);
