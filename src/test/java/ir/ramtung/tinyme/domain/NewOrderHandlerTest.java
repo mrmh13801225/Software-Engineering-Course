@@ -25,6 +25,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -41,41 +42,9 @@ import static org.mockito.Mockito.*;
 public class NewOrderHandlerTest {
 
     @Autowired
-    NewOrderHandler orderHandler;
-
-    @TestConfiguration
-    public static class MockedJMSTestConfig {
-        @MockBean
-        EventPublisher eventPublisher;
-        @MockBean
-        RequestDispatcher requestDispatcher;
-
-        @Bean(name = "testRequestHandlingStrategyMap")
-        public Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategyMap(
-                EnterOrderRequestStrategy enterOrderRequestStrategy,
-                DeleteOrderRequestStrategy deleteOrderRequestStrategy,
-                ChangeMatchingStateRequestStrategy changeMatchingStateRequestStrategy) {
-            Map<Class<? extends Request>, RequestHandlingStrategy> strategyMap = new HashMap<>();
-            strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
-            strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
-            strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);
-            return strategyMap;
-        }
-
-        @Bean(name = "testResultPublishingStrategyMap")
-        public Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategyMap(
-                EnterOrderRequestResultPublishingStrategy enterOrderRequestStrategy,
-                DeleteOrderRequestResultPublishingStrategy deleteOrderRequestStrategy,
-                ChangeMatchingStateRequestResultPublishingStrategy changeMatchingStateRequestStrategy) {
-            Map<Class<? extends Request>, ResultPublishingStrategy> strategyMap = new HashMap<>();
-            strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
-            strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
-            strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);
-            return strategyMap;
-        }
-    }
-    @Autowired
     EventPublisher eventPublisher;
+    @Autowired
+    NewOrderHandler orderHandler;
     @Autowired
     SecurityRepository securityRepository;
     @Autowired
@@ -123,5 +92,6 @@ public class NewOrderHandlerTest {
         verify(eventPublisher).publish((new OrderAcceptedEvent(1, 200)));
         verify(eventPublisher).publish(new OrderExecutedEvent(1, 200, List.of(new TradeDTO(trade))));
     }
+
 
 }

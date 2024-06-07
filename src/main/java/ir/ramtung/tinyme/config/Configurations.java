@@ -8,6 +8,7 @@ import ir.ramtung.tinyme.messaging.request.Request;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import java.util.Map;
 @ComponentScan(basePackages = "ir.ramtung.tinyme")
 public class Configurations {
     @Bean(name = "mainRequestHandlingStrategyMap")
+    @Primary
     public Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategyMap(
             EnterOrderRequestStrategy enterOrderRequestStrategy,
             DeleteOrderRequestStrategy deleteOrderRequestStrategy,
@@ -28,6 +30,7 @@ public class Configurations {
     }
 
     @Bean(name = "mainResultPublishingStrategyMap")
+    @Primary
     public Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategyMap(
             EnterOrderRequestResultPublishingStrategy enterOrderRequestStrategy,
             DeleteOrderRequestResultPublishingStrategy deleteOrderRequestStrategy,
