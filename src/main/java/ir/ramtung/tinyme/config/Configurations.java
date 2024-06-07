@@ -15,8 +15,8 @@ import java.util.Map;
 @Configuration
 @ComponentScan(basePackages = "ir.ramtung.tinyme")
 public class Configurations {
-    @Bean
-    public Map<Class<? extends Request>, RequestHandlingStrategy> strategyMap(
+    @Bean(name = "mainRequestHandlingStrategyMap")
+    public Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategyMap(
             EnterOrderRequestStrategy enterOrderRequestStrategy,
             DeleteOrderRequestStrategy deleteOrderRequestStrategy,
             ChangeMatchingStateRequestStrategy changeMatchingStateRequestStrategy) {
@@ -27,8 +27,8 @@ public class Configurations {
         return strategyMap;
     }
 
-    @Bean
-    public Map<Class<? extends Request>, ResultPublishingStrategy> strategyMap(
+    @Bean(name = "mainResultPublishingStrategyMap")
+    public Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategyMap(
             EnterOrderRequestResultPublishingStrategy enterOrderRequestStrategy,
             DeleteOrderRequestResultPublishingStrategy deleteOrderRequestStrategy,
             ChangeMatchingStateRequestResultPublishingStrategy changeMatchingStateRequestStrategy) {

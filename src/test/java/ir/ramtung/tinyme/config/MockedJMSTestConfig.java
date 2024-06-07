@@ -1,9 +1,6 @@
 package ir.ramtung.tinyme.config;
 
-import ir.ramtung.tinyme.domain.service.ChangeMatchingStateRequestStrategy;
-import ir.ramtung.tinyme.domain.service.DeleteOrderRequestStrategy;
-import ir.ramtung.tinyme.domain.service.EnterOrderRequestStrategy;
-import ir.ramtung.tinyme.domain.service.RequestHandlingStrategy;
+import ir.ramtung.tinyme.domain.service.*;
 import ir.ramtung.tinyme.messaging.EventPublisher;
 import ir.ramtung.tinyme.messaging.RequestDispatcher;
 import ir.ramtung.tinyme.messaging.request.ChangeMatchingStateRq;
@@ -26,11 +23,23 @@ public class MockedJMSTestConfig {
     RequestDispatcher requestDispatcher;
 
     @Bean
-    public Map<Class<? extends Request>, RequestHandlingStrategy> strategyMap(
+    public Map<Class<? extends Request>, RequestHandlingStrategy> requestHandlingStrategyMap(
             EnterOrderRequestStrategy enterOrderRequestStrategy,
             DeleteOrderRequestStrategy deleteOrderRequestStrategy,
             ChangeMatchingStateRequestStrategy changeMatchingStateRequestStrategy) {
         Map<Class<? extends Request>, RequestHandlingStrategy> strategyMap = new HashMap<>();
+        strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
+        strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
+        strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);
+        return strategyMap;
+    }
+
+    @Bean
+    public Map<Class<? extends Request>, ResultPublishingStrategy> resultPublishingStrategyMap(
+            EnterOrderRequestResultPublishingStrategy enterOrderRequestStrategy,
+            DeleteOrderRequestResultPublishingStrategy deleteOrderRequestStrategy,
+            ChangeMatchingStateRequestResultPublishingStrategy changeMatchingStateRequestStrategy) {
+        Map<Class<? extends Request>, ResultPublishingStrategy> strategyMap = new HashMap<>();
         strategyMap.put(EnterOrderRq.class, enterOrderRequestStrategy);
         strategyMap.put(DeleteOrderRq.class, deleteOrderRequestStrategy);
         strategyMap.put(ChangeMatchingStateRq.class, changeMatchingStateRequestStrategy);
