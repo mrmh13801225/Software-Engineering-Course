@@ -30,8 +30,6 @@ public class StopLimitOrder extends Order{
     }
 
     public StopLimitOrder(long orderId, Security security, Side side, int quantity, int price, Broker broker, Shareholder shareholder, LocalDateTime entryTime, OrderStatus status, long stopPrice) {
-//        this(orderId, security, side, initialQuantity, quantity, price, broker, shareholder, entryTime,
-//                status, minimumExecutionQuantity, isUpdated, stopPrice, reqId);
         super(orderId, security, side, quantity, price, broker, shareholder, entryTime, status);
         this.stopPrice = stopPrice;
     }
@@ -76,19 +74,11 @@ public class StopLimitOrder extends Order{
     }
 
     public boolean queuesBefore(StopLimitOrder order) {
-        if (order.getSide() == Side.BUY) {
-            return stopPrice > order.stopPrice;
-        }
-        return stopPrice < order.stopPrice;
-
+        return (side == Side.BUY) ? stopPrice > order.stopPrice : stopPrice < order.stopPrice;
     }
 
     public boolean isActivated(long price){
-        if (this.side == Side.BUY) {
-            return price >= this.stopPrice;
-        }
-        return price <= this.stopPrice;
-
+        return (side == Side.BUY) ? price >= stopPrice : price <= stopPrice;
     }
 
     public Order toOrder(){
