@@ -23,14 +23,13 @@ public class AuctionSecurity extends Security{
 
     @Override
     protected MatchResult handleOrderExecution (Order order ,Matcher matcher){
-        if (order.getSide() == Side.BUY) {
+        if (isOrderBuy(order)) {
             if(!order.getBroker().hasEnoughCredit(order.getValue()))
                 return MatchResult.notEnoughCredit();
             order.getBroker().decreaseCreditBy(order.getValue());
         }
         orderBook.enqueue(order);
         order.queue();
-        //TODO:maybe need to add order.queued;
         return MatchResult.orderAddedToAuction(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
 
@@ -65,22 +64,18 @@ public class AuctionSecurity extends Security{
     @Override
     protected MatchResult handleUpdateOrderExecution (EnterOrderRq updateOrderRq ,Matcher matcher ,Order order ,
                                                       Order originalOrder){
-
         orderBook.removeByOrderId(updateOrderRq.getSide(), updateOrderRq.getOrderId());
         if (updateOrderRq.getSide() == Side.BUY) {
             if(order.getBroker().hasEnoughCredit(order.getValue())) {
-                order.getBroker().decreaseCreditBy(order.getValue());
-                orderBook.enqueue(order);
+                enqueueWithDecreasing(order);
             }
             else {
-                originalOrder.getBroker().decreaseCreditBy(originalOrder.getValue());
-                orderBook.enqueue(originalOrder);
+                enqueueWithDecreasing(originalOrder);
                 return MatchResult.notEnoughCredit();
             }
         } else {
             orderBook.enqueue(order);
         }
-
         return MatchResult.changeAuctionOrderBook(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
 
@@ -98,16 +93,13 @@ public class AuctionSecurity extends Security{
 
     public MatchResult deleteAuctionOrder(DeleteOrderRq deleteOrderRq) throws InvalidRequestException {
         Order order = findOrder(deleteOrderRq);
-
         if (order == null)
             throw new InvalidRequestException(Message.ORDER_ID_NOT_FOUND);
         else if (order instanceof StopLimitOrder) {
             throw new InvalidRequestException(Message.CANNOT_DELETE_STOP_LIMIT_ORDER_IN_AUCTION);
         }
-
         handleDeletedOrderCredit(order);
         removeOrder(order ,deleteOrderRq);
-
         return MatchResult.changeAuctionOrderBook(orderBook.calculateOpeningPrice(price), orderBook.getTradableQuantity());
     }
 
@@ -138,4 +130,12 @@ public class AuctionSecurity extends Security{
         return results;
     }
 
+    private boolean isOrderBuy(Order order){
+        return order.getSide() == Side.BUY;
+    }
+
+    private void enqueueWithDecreasing(Order order){
+        order.getBroker().decreaseCreditBy(order.getValue());
+        orderBook.enqueue(order);
+    }
 }

@@ -138,31 +138,9 @@ public class OrderBook {
                 bestTradableQuantity = tempTradableQuantity;
 
             }
-//            else if (tempTradableQuantity == bestTradableQuantity){
-//                if (isLowerPriceCloser(order.getPrice(), bestprice, (int) price))
-//                    bestprice = order.getPrice();
-//                else
-//                    break;
-//            }
-//            else {//TODO:should be lower than next sell.
-//                bestprice = order.getPrice();
-//                bestTradableQuantity = tempTradableQuantity ;
-//            }
         }
         return Pair.of(bestprice, bestTradableQuantity);
     }
-
-//    protected int findFirstHigherBuyPrice(int lowerBound){
-//        int bestPrice = Integer.MAX_VALUE;
-//        for (int i = buyQueue.size()-1 ; i >= 0 ; i--){
-//            Order buy = buyQueue.get(i);
-//            if (buy.getPrice() >= lowerBound)
-//                bestPrice = buy.getPrice();
-//            else
-//                break;
-//        }
-//        return bestPrice;
-//    }
 
     protected int calculateExactOpeningPrice (int price, int lowerBound, int upperBound){
 
