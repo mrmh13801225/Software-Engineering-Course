@@ -127,29 +127,29 @@ public class NewOrderHandlerTest {
         verify(eventPublisher).publish(new OrderExecutedEvent(1, 200, List.of(new TradeDTO(trade1), new TradeDTO(trade2))));
     }
 
-//    @Test
-//    void iceberg_order_behaves_normally_before_being_queued() {
-//        Order matchingBuyOrder = new Order(100, security, Side.BUY, 1000, 15500, broker1, shareholder);
-//        Order incomingSellOrder = new IcebergOrder(200, security, Side.SELL, 300, 15450, broker2, shareholder, 100);
-//        security.getOrderBook().enqueue(matchingBuyOrder);
-//        Trade trade = new Trade(security, matchingBuyOrder.getPrice(), incomingSellOrder.getQuantity(),
-//                matchingBuyOrder, incomingSellOrder);
-//
-//        EventPublisher mockEventPublisher = mock(EventPublisher.class, withSettings().verboseLogging());
-//        NewOrderHandler myOrderHandler = new NewOrderHandler(securityRepository, brokerRepository, shareholderRepository, mockEventPublisher, new Matcher());
-//        myOrderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,
-//                incomingSellOrder.getSecurity().getIsin(),
-//                incomingSellOrder.getOrderId(),
-//                incomingSellOrder.getEntryTime(),
-//                incomingSellOrder.getSide(),
-//                incomingSellOrder.getTotalQuantity(),
-//                incomingSellOrder.getPrice(),
-//                incomingSellOrder.getBroker().getBrokerId(),
-//                incomingSellOrder.getShareholder().getShareholderId(), 100));
-//
-//        verify(mockEventPublisher).publish(new OrderAcceptedEvent(1, 200));
-//        verify(mockEventPublisher).publish(new OrderExecutedEvent(1, 200, List.of(new TradeDTO(trade))));
-//    }
+    @Test
+    void iceberg_order_behaves_normally_before_being_queued() {
+        Order matchingBuyOrder = new Order(100, security, Side.BUY, 1000, 15500, broker1, shareholder);
+        Order incomingSellOrder = new IcebergOrder(200, security, Side.SELL, 300, 15450, broker2, shareholder, 100);
+        security.getOrderBook().enqueue(matchingBuyOrder);
+        Trade trade = new Trade(security, matchingBuyOrder.getPrice(), incomingSellOrder.getQuantity(),
+                matchingBuyOrder, incomingSellOrder);
+
+        EventPublisher mockEventPublisher = mock(EventPublisher.class, withSettings().verboseLogging());
+        NewOrderHandler myOrderHandler = new NewOrderHandler(securityRepository, brokerRepository, shareholderRepository, mockEventPublisher, new Matcher());
+        myOrderHandler.handleRequest(EnterOrderRq.createNewOrderRq(1,
+                incomingSellOrder.getSecurity().getIsin(),
+                incomingSellOrder.getOrderId(),
+                incomingSellOrder.getEntryTime(),
+                incomingSellOrder.getSide(),
+                incomingSellOrder.getTotalQuantity(),
+                incomingSellOrder.getPrice(),
+                incomingSellOrder.getBroker().getBrokerId(),
+                incomingSellOrder.getShareholder().getShareholderId(), 100));
+
+        verify(mockEventPublisher).publish(new OrderAcceptedEvent(1, 200));
+        verify(mockEventPublisher).publish(new OrderExecutedEvent(1, 200, List.of(new TradeDTO(trade))));
+    }
 
     @Test
     void invalid_new_order_with_multiple_errors() {

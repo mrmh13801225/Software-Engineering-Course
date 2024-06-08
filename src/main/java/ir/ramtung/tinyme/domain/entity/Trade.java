@@ -22,14 +22,13 @@ public class Trade {
         this.security = security;
         this.price = price;
         this.quantity = quantity;
-        Order snapshot1 = order1.snapshot();
-        Order snapshot2 = order2.snapshot();
+
         if (order1.getSide() == Side.BUY) {
-            this.buy = snapshot1;
-            this.sell = snapshot2;
+            this.buy = order1.snapshot();
+            this.sell = order2.snapshot();
         } else {
-            this.buy = snapshot2;
-            this.sell = snapshot1;
+            this.buy = order2.snapshot();
+            this.sell = order1.snapshot();
         }
     }
 
