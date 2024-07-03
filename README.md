@@ -5,22 +5,22 @@ TinyME is a simple matching engine developed as a group project for the Software
 ## Table of Contents
 
 - [Features](#features)
-- [Installation](#installation)
+- [Run](#run)
 - [Project Tasks](#project-tasks)
 - [Code Quality](#code-quality)
-- [Contributors](#contibutors)
+- [Contributors](#contributors)
 
 ## Features
 
 - Order Matching
-- Iceburg Orders
+- Iceberg Orders
 - Minimum Execution Quantity for Orders
 - Stop Limit Orders
 - Auction Mode
 
 ## Run
 
-to run this project you just need to clone the repository and in the code folder you can run tests or conineu development .
+To run this project, you just need to clone the repository and in the code folder you can run tests or continue development.
 
 ## Project Tasks
 
@@ -44,6 +44,9 @@ Throughout the project, we emphasized code quality and clean coding practices. K
 - Implementing unit tests to ensure code reliability
 
 ## Contributors
+
 1. [**Mohammadreza Mohammadhashemi**](https://github.com/mrmh13801225)
 2. [**Mohammad Mahdi Ebrahim Soltani**](https://github.com/MahdiES0)
 3. [**Mobina Haghizadeh**](https://github.com/mobinahz)
+
+---
