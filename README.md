@@ -8,7 +8,7 @@ TinyME is a simple matching engine developed as a group project for the Software
 - [Installation](#installation)
 - [Project Tasks](#project-tasks)
 - [Code Quality](#code-quality)
-- [Contibutors](#contibutors)
+- [Contributors](#contibutors)
 
 ## Features
 
@@ -43,7 +43,7 @@ Throughout the project, we emphasized code quality and clean coding practices. K
 - Enhancing modularity and separation of concerns
 - Implementing unit tests to ensure code reliability
 
-## Contributors :
+## Contributors
 1. [**Mohammadreza Mohammadhashemi**](https://github.com/mrmh13801225)
 2. [**Mohammad Mahdi Ebrahim Soltani**](https://github.com/MahdiES0)
 3. [**Mobina Haghizadeh**](https://github.com/mobinahz)
